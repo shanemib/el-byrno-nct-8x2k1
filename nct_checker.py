@@ -31,87 +31,112 @@ BASE_URL = "https://www.ncts.ie/"
 
 
 async def run_flow(page):
-    """Step 1-2: enter reg, confirm vehicle, accept terms."""
+    """Step 1-2: enter reg, confirm vehicle, accept terms. (selectors verified via playwright codegen)"""
     await page.goto(BASE_URL)
-    await page.fill('input[placeholder="ENTER REGISTRATION"]', REG)
-    await page.keyboard.press("Enter")
+
+    reg_box = page.get_by_role("textbox", name="Enter Registration")
+    await reg_box.click()
+    await reg_box.fill(REG)
+    await page.get_by_role("button", name="Search Vehicle").click()
     await page.wait_for_load_state("networkidle")
 
-    # Confirmation page: tick both checkboxes, click YES
-    checkboxes = page.locator('input[type="checkbox"]')
-    count = await checkboxes.count()
-    for i in range(count):
-        await checkboxes.nth(i).check()
-    await page.click('button:has-text("YES")')
+    await page.get_by_role("checkbox", name="I agree to the Terms and").check()
+    await page.get_by_role("checkbox", name="I confirm that I have read").check()
+    await page.get_by_role("button", name="Continue").click()
     await page.wait_for_load_state("networkidle")
 
 
 async def expand_all_centres(page):
     """Click 'SEE MORE SUGGESTED CENTRES' until every centre is listed."""
     for _ in range(5):  # safety cap
-        btn = page.locator('button:has-text("SEE MORE SUGGESTED CENTRES")')
+        btn = page.locator('button[aria-controls="moreSuggestedCentres"]')
         if await btn.count() == 0:
             break
-        await btn.first.click()
+        try:
+            await btn.first.scroll_into_view_if_needed()
+            await btn.first.click(timeout=5000)
+        except Exception:
+            break
         await page.wait_for_timeout(800)
 
 
-async def get_centre_next_dates(page):
-    """
-    Returns {centre_name: next_available_date_string} by reading the
-    'Selected Centre' banner + 'Other Suggested Centre' table rows.
+MONTH_MAP = {
+    "jan": 1, "feb": 2, "mar": 3, "apr": 4, "may": 5, "jun": 6,
+    "jul": 7, "aug": 8, "sep": 9, "sept": 9, "oct": 10, "nov": 11, "dec": 12,
+}
 
-    NOTE: verify these selectors match the live DOM (see README) —
-    built from the screenshots you shared, may need small tweaks.
-    """
-    results = {}
 
-    # The currently selected centre banner
-    selected_name = await page.locator(".selected-centre, [class*='SELECTED CENTRE'] a").first.inner_text()
-    selected_date = await page.locator(".next-available-date, [class*='NEXT AVAILABLE'] >> nth=0").first.inner_text()
-    results[selected_name.strip()] = selected_date.strip()
+def parse_site_date(label: str):
+    """Parse labels like 'Tuesday 8th Sept' (site uses non-standard 'Sept')."""
+    match = re.match(r"^[A-Za-z]+\s+(\d{1,2})(?:st|nd|rd|th)\s+([A-Za-z]+)$", label)
+    if not match:
+        return None
+    day = int(match.group(1))
+    month = MONTH_MAP.get(match.group(2).lower())
+    if not month:
+        return None
+    today = datetime.now()
+    candidate = datetime(today.year, month, day)
+    if candidate < today - timedelta(days=1):
+        candidate = datetime(today.year + 1, month, day)
+    return candidate
 
-    # Rows in the "Other Suggested Centre" table
-    rows = page.locator("table tr")
-    row_count = await rows.count()
-    for i in range(row_count):
-        text = await rows.nth(i).inner_text()
-        parts = [p.strip() for p in text.split("\n") if p.strip()]
-        if len(parts) >= 2:
-            results[parts[0]] = parts[-1]
 
-    return results
+async def select_centre(page, centre_name):
+    """Open the station dropdown and pick centre_name by its visible label."""
+    toggle = page.locator("#showMoreStations").get_by_role("emphasis")
+    if await toggle.count():
+        await toggle.first.click()
+        await page.wait_for_timeout(300)
+
+    select = page.get_by_label("Select Station")
+    if await select.count():
+        await select.select_option(label=centre_name)
+        await page.wait_for_load_state("networkidle")
+        await page.wait_for_timeout(500)
+        return True
+    return False
 
 
 async def get_available_dates_and_times(page, centre_name, cutoff_date):
     """
-    Click into a centre (if not already selected) and collect every date
-    button within the next WEEKS_AHEAD weeks, then click each date to
-    read the available times.
+    Select a centre via the 'Select Station' dropdown, then walk each
+    date shown within cutoff_date and read the time labels underneath
+    it. We only click dates to reveal times — never a time slot itself,
+    since that starts the real booking flow.
     """
+    selected = await select_centre(page, centre_name)
+    print(f"[{centre_name}] selected via dropdown: {selected}")
+
     dates_found = []
+    date_locator = page.get_by_text(re.compile(r"^[A-Za-z]+\s+\d{1,2}(st|nd|rd|th)\s+[A-Za-z]+$"))
+    count = await date_locator.count()
+    print(f"[{centre_name}] date elements found: {count}")
 
-    # Click the centre name if it's not already the selected one
-    link = page.locator(f"text={centre_name}").first
-    if await link.count():
-        await link.click()
-        await page.wait_for_timeout(1000)
-
-    date_buttons = page.locator("button:has-text('Sept'), button:has-text('Oct'), button:has-text('Nov')")
-    n = await date_buttons.count()
-    for i in range(n):
-        label = (await date_buttons.nth(i).inner_text()).strip()
+    for i in range(count):
         try:
-            parsed = datetime.strptime(f"{label} {datetime.now().year}", "%A\n%dth %b %Y")
-        except ValueError:
-            continue  # date format varies; adjust after checking real labels
-        if parsed > cutoff_date:
-            continue
+            label_text = (await date_locator.nth(i).inner_text()).strip().replace("\n", " ")
+            parsed = parse_site_date(label_text)
+            if parsed is None:
+                print(f"[{centre_name}] could not parse date label: {label_text!r}")
+                continue
+            if parsed > cutoff_date:
+                continue
 
-        await date_buttons.nth(i).click()
-        await page.wait_for_timeout(800)
-        times = await page.locator("[class*='time-slot'], button[class*='time']").all_inner_texts()
-        dates_found.append({"date": label, "times": times})
+            await date_locator.nth(i).evaluate("el => el.click()")
+            await page.wait_for_timeout(1000)
+
+            # Times live in a specific owl-carousel: #bookingAvailableSlotsTimes,
+            # each one a <label class="booking-available-slot"> around a hidden radio.
+            time_labels = page.locator("#bookingAvailableSlotsTimes label.booking-available-slot")
+            raw_times = await time_labels.all_inner_texts()
+            times = [t.strip() for t in raw_times if t.strip()]
+            print(f"[{centre_name}] {label_text}: {len(times)} time slots")
+            if times:
+                dates_found.append({"date": label_text, "times": times})
+        except Exception as e:
+            print(f"[{centre_name}] stopped early after an unexpected page change: {e}")
+            break
 
     return dates_found
 
@@ -134,13 +159,9 @@ async def main():
 
         await run_flow(page)
         await expand_all_centres(page)
-        next_dates = await get_centre_next_dates(page)
 
         for centre in TARGET_CENTRES:
-            match = next((c for c in next_dates if centre.lower() in c.lower()), None)
-            if not match:
-                continue
-            slots = await get_available_dates_and_times(page, match, cutoff)
+            slots = await get_available_dates_and_times(page, centre, cutoff)
             if slots:
                 for s in slots:
                     times_str = ", ".join(s["times"]) if s["times"] else "(times not read)"
