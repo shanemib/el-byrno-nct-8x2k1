@@ -13,7 +13,7 @@ itself isn't tied to whose car it is, so one shared registration (yours) is
 enough to check appointments on behalf of every subscriber on the website.
 
 ENVIRONMENT VARIABLES (set as GitHub Actions secrets, see SETUP.md):
-    NCT_REG                    - vehicle registration used to open the booking flow, e.g. "152C6241"
+    NCT_REG                    - vehicle registration used to open the booking flow, e.g. "191D12345"
     SUPABASE_URL               - e.g. https://xxxx.supabase.co
     SUPABASE_SERVICE_ROLE_KEY  - Supabase service_role secret key
     RESEND_API_KEY             - Resend API key
@@ -42,7 +42,7 @@ from supabase_utils import get_rows, patch_row
 from resend_utils import send_email
 from whatsapp_utils import send_whatsapp_alert
 
-REG = os.environ.get("NCT_REG", "152C6241")
+REG = os.environ.get("NCT_REG", "")
 NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "")
 SITE_BASE_URL = os.environ.get("SITE_BASE_URL", "").rstrip("/")
 HEADLESS = os.environ.get("HEADLESS", "true").lower() != "false"
@@ -195,9 +195,15 @@ async def get_available_dates_and_times(page, centre_name, cutoff_date):
     return dates_found
 
 
-def send_ntfy(message: str):
+NTFY_MAX_LINES = 10  # keep this a real push notification, not a wall of text
+
+
+def send_ntfy(lines: list[str]):
     if not NTFY_TOPIC:
         return
+    message = "\n".join(lines[:NTFY_MAX_LINES])
+    if len(lines) > NTFY_MAX_LINES:
+        message += f"\n...and {len(lines) - NTFY_MAX_LINES} more — check the website for the full list."
     requests.post(
         f"https://ntfy.sh/{NTFY_TOPIC}",
         data=message.encode("utf-8"),
@@ -305,6 +311,12 @@ def maybe_update_centres_file(all_centres: list[str]):
 
 
 async def main():
+    if not REG:
+        raise SystemExit(
+            "NCT_REG is not set — add it as a GitHub Actions secret "
+            "(your vehicle registration, e.g. 191D12345)."
+        )
+
     subscribers = fetch_verified_subscribers()
     weeks_needed = [s.get("weeks_ahead") or DEFAULT_WEEKS_AHEAD for s in subscribers]
     max_weeks = min(max(weeks_needed, default=DEFAULT_WEEKS_AHEAD), MAX_WEEKS_AHEAD_CAP)
@@ -336,7 +348,7 @@ async def main():
 
     if report_lines:
         print("Availability found:\n" + "\n".join(report_lines))
-        send_ntfy("\n".join(report_lines))
+        send_ntfy(report_lines)
     else:
         print("No availability within window across any centre.")
 
