@@ -52,6 +52,7 @@ MAX_DAYS_AHEAD_CAP = 90
 
 BASE_URL = "https://www.ncts.ie/"
 CENTRES_JSON_PATH = os.path.join(os.path.dirname(__file__), "docs", "centres.json")
+LAST_CHECKED_JSON_PATH = os.path.join(os.path.dirname(__file__), "docs", "last_checked.json")
 
 
 async def run_flow(page):
@@ -293,6 +294,20 @@ def notify_subscribers(results: dict, subscribers: list[dict]):
                 print(f"[notify] failed to update notified state for {sub['email']}: {e}")
 
 
+def write_last_checked():
+    """Record when the checker last completed successfully, so the website
+    can show a real 'last checked N minutes ago' instead of just claiming
+    'hourly'. Only called once a full run has actually finished — if the
+    scraper breaks partway through (e.g. ncts.ie changes its page), this
+    timestamp correctly stops moving forward until someone fixes it."""
+    try:
+        os.makedirs(os.path.dirname(LAST_CHECKED_JSON_PATH), exist_ok=True)
+        with open(LAST_CHECKED_JSON_PATH, "w") as f:
+            json.dump({"timestamp": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")}, f)
+    except Exception as e:
+        print(f"[last_checked] failed to write last_checked.json: {e}")
+
+
 def maybe_update_centres_file(all_centres: list[str]):
     try:
         existing = []
@@ -353,6 +368,7 @@ async def main():
         print("No availability within window across any centre.")
 
     notify_subscribers(results, subscribers)
+    write_last_checked()
 
 
 if __name__ == "__main__":

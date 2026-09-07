@@ -5,6 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="Free NCT appointment alerts for Ireland. Pick your test centres and time window — we check every NCT centre hourly and email you the moment a slot opens up." />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%230b6e4f'/%3E%3Cpath d='M30 52l14 14 26-30' stroke='white' stroke-width='9' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+
+  <!-- Social sharing preview (WhatsApp/Facebook/Twitter). Update og:url here
+       if/when this moves to a custom domain (see SETUP.md Phase 2). -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="NCT Appointment Alerts" />
+  <meta property="og:description" content="Stop refreshing ncts.ie. Pick your test centres and time window — we check every NCT centre hourly and email you the moment a slot opens up." />
+  <meta property="og:url" content="https://shanemib.github.io/el-byrno-nct-8x2k1/" />
+  <meta property="og:image" content="https://shanemib.github.io/el-byrno-nct-8x2k1/og-image.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+
   <title>NCT Appointment Alerts</title>
   <link rel="stylesheet" href="./style.css" />
 </head>
@@ -87,6 +97,14 @@
               <p class="hint">Not used yet — email is free and covers everyone. This just saves your spot for when instant WhatsApp alerts launch as a paid perk.</p>
             </div>
           </details>
+
+          <!-- Honeypot: invisible to real visitors, but a bot's form-filler
+               will often fill every field it finds. If this has anything in
+               it on submit, we quietly drop the request. -->
+          <div class="hp-field" aria-hidden="true">
+            <label for="companyWebsite">Company website</label>
+            <input type="text" id="companyWebsite" name="companyWebsite" tabindex="-1" autocomplete="off" />
+          </div>
 
           <button type="submit">Sign up for alerts</button>
           <p class="privacy-note">🔒 Used only to send your alerts. No spam, unsubscribe any time.</p>

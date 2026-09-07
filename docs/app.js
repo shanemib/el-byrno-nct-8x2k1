@@ -97,15 +97,22 @@ function prettifyError(message) {
 
 async function callRpc(fnName, args) {
   const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.NCT_CONFIG;
-  const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fnName}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-    },
-    body: JSON.stringify(args),
-  });
+  let resp;
+  try {
+    resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fnName}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify(args),
+    });
+  } catch (e) {
+    // fetch() itself throws for network-level failures (offline, DNS, etc.)
+    // — there's no response to read a message from, so give a plain one.
+    throw new Error("Couldn't reach the server — check your connection and try again.");
+  }
 
   let body = null;
   try {
@@ -127,6 +134,43 @@ function showStatus(el, message, kind) {
   el.textContent = message;
   el.className = `status show ${kind}`;
   el.setAttribute("role", kind === "error" ? "alert" : "status");
+}
+
+let centreCount = null;
+let lastCheckedIso = null;
+
+function timeAgo(iso) {
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return null;
+  const diffMin = Math.max(0, Math.round((Date.now() - then) / 60000));
+  if (diffMin < 1) return "just now";
+  if (diffMin === 1) return "1 minute ago";
+  if (diffMin < 60) return `${diffMin} minutes ago`;
+  const hrs = Math.round(diffMin / 60);
+  return hrs === 1 ? "1 hour ago" : `${hrs} hours ago`;
+}
+
+function renderLiveStatus() {
+  const el = document.getElementById("liveStatus");
+  if (!el || centreCount == null) return;
+  const ago = lastCheckedIso ? timeAgo(lastCheckedIso) : null;
+  el.textContent = ago
+    ? `🟢 Live — ${centreCount} NCT centres, last checked ${ago}`
+    : `🟢 Live — scanning all ${centreCount} NCT centres, hourly`;
+}
+
+async function loadLastChecked() {
+  try {
+    const resp = await fetch("./last_checked.json", { cache: "no-store" });
+    if (!resp.ok) return;
+    const data = await resp.json();
+    if (data && data.timestamp) {
+      lastCheckedIso = data.timestamp;
+      renderLiveStatus();
+    }
+  } catch (e) {
+    // Fine to stay quiet — the static "hourly" wording is a fair fallback.
+  }
 }
 
 function updateSelectedCount(grid) {
@@ -162,7 +206,6 @@ function filterCentres(grid, query) {
 async function loadCentres() {
   const grid = document.getElementById("centreGrid");
   const searchInput = document.getElementById("centreSearch");
-  const liveStatus = document.getElementById("liveStatus");
   try {
     const resp = await fetch("./centres.json", { cache: "no-store" });
     const centres = await resp.json();
@@ -172,9 +215,8 @@ async function loadCentres() {
       return;
     }
 
-    if (liveStatus) {
-      liveStatus.textContent = `🟢 Live — scanning all ${centres.length} NCT centres, hourly`;
-    }
+    centreCount = centres.length;
+    renderLiveStatus();
 
     grid.innerHTML = "";
     for (const name of centres) {
@@ -219,11 +261,29 @@ function initSignupForm() {
   if (!form) return;
   const statusEl = document.getElementById("status");
   const submitBtn = form.querySelector("button[type=submit]");
+  const formOpenedAt = Date.now();
 
   loadCentres();
+  loadLastChecked();
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
+
+    // Basic bot filtering: a hidden field real visitors never see or fill,
+    // plus a minimum time-on-page — no CAPTCHA needed to catch the
+    // unsophisticated form-filling bots this is mainly meant to deter.
+    const honeypot = document.getElementById("companyWebsite").value.trim();
+    const tooFast = Date.now() - formOpenedAt < 1500;
+    if (honeypot || tooFast) {
+      showStatus(
+        statusEl,
+        "Almost there — check your inbox for a confirmation email (usually within a few minutes).",
+        "success"
+      );
+      form.reset();
+      return;
+    }
+
     const email = document.getElementById("email").value.trim();
     const whatsapp = document.getElementById("whatsapp").value.trim();
     const daysAhead = parseInt(document.getElementById("daysAhead").value, 10);

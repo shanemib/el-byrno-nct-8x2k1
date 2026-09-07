@@ -46,14 +46,28 @@ jobs:
           TWILIO_CONTENT_SID: ${{ secrets.TWILIO_CONTENT_SID }}
         run: python nct_checker.py
 
-      - name: Commit updated centre list (if changed)
+      - name: Commit updated centre list and last-checked time (if changed)
         run: |
-          if ! git diff --quiet -- docs/centres.json; then
+          if ! git diff --quiet -- docs/centres.json docs/last_checked.json; then
             git config user.name "nct-checker-bot"
             git config user.email "actions@users.noreply.github.com"
-            git add docs/centres.json
-            git commit -m "Update centres.json"
+            git add docs/centres.json docs/last_checked.json
+            git commit -m "Update centres.json / last_checked.json"
             git push
           else
-            echo "centres.json unchanged"
+            echo "centres.json and last_checked.json unchanged"
+          fi
+
+      - name: Alert on failure
+        if: failure()
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: |
+          if [ -n "$NTFY_TOPIC" ]; then
+            curl -s -X POST "https://ntfy.sh/$NTFY_TOPIC" \
+              -H "Title: NCT checker FAILED" \
+              -H "Priority: urgent" \
+              -d "The hourly NCT checker failed — availability alerts may have stopped. Check the log: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          else
+            echo "NTFY_TOPIC secret not set — skipping failure alert. Set it as a repo secret (Settings > Secrets and variables > Actions) to get notified when this breaks."
           fi

@@ -26,3 +26,17 @@ jobs:
           RESEND_FROM: ${{ secrets.RESEND_FROM }}
           SITE_BASE_URL: ${{ vars.SITE_BASE_URL }}
         run: python process_signups.py
+
+      - name: Alert on failure
+        if: failure()
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: |
+          if [ -n "$NTFY_TOPIC" ]; then
+            curl -s -X POST "https://ntfy.sh/$NTFY_TOPIC" \
+              -H "Title: NCT signup emails FAILED" \
+              -H "Priority: urgent" \
+              -d "process-signups.py failed — new subscribers aren't getting their confirmation email. Check the log: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          else
+            echo "NTFY_TOPIC secret not set — skipping failure alert."
+          fi
