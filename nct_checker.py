@@ -34,6 +34,13 @@ async def run_flow(page):
     """Step 1-2: enter reg, confirm vehicle, accept terms. (selectors verified via playwright codegen)"""
     await page.goto(BASE_URL)
 
+    # Fresh browser profiles (e.g. GitHub Actions) show a GDPR cookie modal
+    # that blocks everything underneath it — dismiss it if present.
+    cookie_btn = page.locator("#bs-gdpr-cookies-modal-accept-btn")
+    if await cookie_btn.count():
+        await cookie_btn.click()
+        await page.wait_for_timeout(300)
+
     reg_box = page.get_by_role("textbox", name="Enter Registration")
     await reg_box.click()
     await reg_box.fill(REG)
