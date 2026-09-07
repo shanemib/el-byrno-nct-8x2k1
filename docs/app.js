@@ -92,7 +92,7 @@ function initSignupForm() {
     e.preventDefault();
     const email = document.getElementById("email").value.trim();
     const whatsapp = document.getElementById("whatsapp").value.trim();
-    const weeksAhead = parseInt(document.getElementById("weeksAhead").value, 10);
+    const daysAhead = parseInt(document.getElementById("daysAhead").value, 10);
     const centres = Array.from(
       form.querySelectorAll('input[name="centre"]:checked')
     ).map((c) => c.value);
@@ -109,7 +109,7 @@ function initSignupForm() {
       await callRpc("signup_subscriber", {
         p_email: email,
         p_centres: centres,
-        p_weeks_ahead: weeksAhead,
+        p_days_ahead: daysAhead,
         p_whatsapp_number: whatsapp || null,
       });
       showStatus(

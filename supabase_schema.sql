@@ -21,7 +21,7 @@ create table if not exists subscribers (
   id uuid primary key default gen_random_uuid(),
   email text not null,
   centres text[] not null,
-  weeks_ahead int not null default 4 check (weeks_ahead between 1 and 12),
+  days_ahead int not null default 28 check (days_ahead between 1 and 90),
   verified boolean not null default false,
   verify_token text not null default encode(gen_random_bytes(16), 'hex'),
   verification_sent boolean not null default false,
@@ -29,6 +29,24 @@ create table if not exists subscribers (
   notified jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now()
 );
+
+-- Migrate installs from before the switch to day-level windows: the column
+-- used to be called weeks_ahead and held a value of 1-12 (meaning weeks).
+-- Rename it and convert existing values to their equivalent in days so
+-- nobody's existing signup silently changes meaning.
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_name = 'subscribers' and column_name = 'weeks_ahead'
+  ) then
+    alter table subscribers rename column weeks_ahead to days_ahead;
+    update subscribers set days_ahead = days_ahead * 7 where days_ahead <= 12;
+    alter table subscribers alter column days_ahead set default 28;
+    alter table subscribers drop constraint if exists subscribers_weeks_ahead_check;
+    alter table subscribers add constraint subscribers_days_ahead_check check (days_ahead between 1 and 90);
+  end if;
+end $$;
 
 create unique index if not exists subscribers_verify_token_idx on subscribers (verify_token);
 create unique index if not exists subscribers_unsubscribe_token_idx on subscribers (unsubscribe_token);
@@ -73,7 +91,7 @@ drop function if exists signup_subscriber(text, text[], int);
 create or replace function signup_subscriber(
   p_email text,
   p_centres text[],
-  p_weeks_ahead int,
+  p_days_ahead int,
   p_whatsapp_number text default null
 )
 returns void
@@ -88,8 +106,8 @@ begin
   if p_centres is null or array_length(p_centres, 1) is null then
     raise exception 'Please choose at least one test centre';
   end if;
-  if p_weeks_ahead is null or p_weeks_ahead < 1 or p_weeks_ahead > 12 then
-    raise exception 'weeks_ahead must be between 1 and 12';
+  if p_days_ahead is null or p_days_ahead < 1 or p_days_ahead > 90 then
+    raise exception 'days_ahead must be between 1 and 90';
   end if;
   if p_whatsapp_number is not null and p_whatsapp_number !~ '^\+[1-9]\d{6,14}$' then
     raise exception 'WhatsApp number must be in international format, e.g. +353871234567';
@@ -99,8 +117,8 @@ begin
   -- and resubmitted), replace it rather than piling up duplicate rows.
   delete from subscribers where email = lower(p_email) and verified = false;
 
-  insert into subscribers (email, centres, weeks_ahead, whatsapp_number)
-  values (lower(p_email), p_centres, p_weeks_ahead, p_whatsapp_number);
+  insert into subscribers (email, centres, days_ahead, whatsapp_number)
+  values (lower(p_email), p_centres, p_days_ahead, p_whatsapp_number);
 end;
 $$;
 

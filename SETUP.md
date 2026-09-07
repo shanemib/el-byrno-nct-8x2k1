@@ -1,7 +1,7 @@
 # Setup guide — NCT Appointment Alerts website
 
 This turns your personal NCT checker into a public website: anyone can sign
-up, choose which test centres to watch and how many weeks ahead, and get
+up, choose which test centres to watch and how far ahead to look, and get
 emailed (or WhatsApped, on a future paid plan) when a matching slot opens
 up. The hourly check now scans **every** NCT centre (not just your original
 four) and matches results against every confirmed subscriber.

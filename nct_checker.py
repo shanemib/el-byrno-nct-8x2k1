@@ -4,7 +4,7 @@ NCT appointment checker for ncts.ie
 Walks the booking flow for a single "probe" registration, reads the LIVE list
 of every test centre from the site's own dropdown, and checks all of them for
 availability. Results are then matched against every verified subscriber in
-Supabase (their chosen centres + how many weeks ahead they care about), and
+Supabase (their chosen centres + how many days ahead they care about), and
 anyone with a new match gets an email via Resend — plus an instant WhatsApp
 message too, for subscribers on the paid plan with a WhatsApp number on file.
 
@@ -47,8 +47,8 @@ NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "")
 SITE_BASE_URL = os.environ.get("SITE_BASE_URL", "").rstrip("/")
 HEADLESS = os.environ.get("HEADLESS", "true").lower() != "false"
 
-DEFAULT_WEEKS_AHEAD = 4
-MAX_WEEKS_AHEAD_CAP = 12
+DEFAULT_DAYS_AHEAD = 28
+MAX_DAYS_AHEAD_CAP = 90
 
 BASE_URL = "https://www.ncts.ie/"
 CENTRES_JSON_PATH = os.path.join(os.path.dirname(__file__), "docs", "centres.json")
@@ -216,7 +216,7 @@ def fetch_verified_subscribers() -> list[dict]:
         "subscribers",
         {
             "verified": "eq.true",
-            "select": "id,email,centres,weeks_ahead,notified,unsubscribe_token,plan,whatsapp_number",
+            "select": "id,email,centres,days_ahead,notified,unsubscribe_token,plan,whatsapp_number",
         },
     )
     print(f"[subscribers] {len(rows)} verified subscriber(s)")
@@ -247,8 +247,8 @@ def notify_subscribers(results: dict, subscribers: list[dict]):
 
     for sub in subscribers:
         sub_centres = sub.get("centres") or []
-        weeks_ahead = sub.get("weeks_ahead") or DEFAULT_WEEKS_AHEAD
-        sub_cutoff = now + timedelta(weeks=weeks_ahead)
+        days_ahead = sub.get("days_ahead") or DEFAULT_DAYS_AHEAD
+        sub_cutoff = now + timedelta(days=days_ahead)
         notified = dict(sub.get("notified") or {})
 
         matches = []
@@ -318,9 +318,9 @@ async def main():
         )
 
     subscribers = fetch_verified_subscribers()
-    weeks_needed = [s.get("weeks_ahead") or DEFAULT_WEEKS_AHEAD for s in subscribers]
-    max_weeks = min(max(weeks_needed, default=DEFAULT_WEEKS_AHEAD), MAX_WEEKS_AHEAD_CAP)
-    cutoff = datetime.now() + timedelta(weeks=max_weeks)
+    days_needed = [s.get("days_ahead") or DEFAULT_DAYS_AHEAD for s in subscribers]
+    max_days = min(max(days_needed, default=DEFAULT_DAYS_AHEAD), MAX_DAYS_AHEAD_CAP)
+    cutoff = datetime.now() + timedelta(days=max_days)
 
     results: dict[str, list[dict]] = {}
     report_lines = []
