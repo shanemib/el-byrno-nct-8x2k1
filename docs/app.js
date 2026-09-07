@@ -322,6 +322,65 @@ function initSignupForm() {
   });
 }
 
+async function initAvailabilityPage() {
+  const listEl = document.getElementById("availabilityList");
+
+  // Reuses the same "N centres, last checked X ago" line as the homepage.
+  fetch("./centres.json", { cache: "no-store" })
+    .then((r) => r.json())
+    .then((centres) => {
+      if (Array.isArray(centres)) {
+        centreCount = centres.length;
+        renderLiveStatus();
+      }
+    })
+    .catch(() => {});
+  loadLastChecked();
+
+  try {
+    const resp = await fetch("./availability.json", { cache: "no-store" });
+    const data = resp.ok ? await resp.json() : {};
+    const centreNames = Object.keys(data).sort();
+
+    if (centreNames.length === 0) {
+      listEl.innerHTML =
+        '<p class="hint">No appointments currently available at any centre we track. Check back after the next hourly run, or sign up below to get emailed automatically.</p>';
+      return;
+    }
+
+    listEl.innerHTML = "";
+    for (const centre of centreNames) {
+      const county = CENTRE_COUNTIES[centre] || "";
+      const card = document.createElement("div");
+      card.className = "avail-card";
+
+      const heading = document.createElement("h3");
+      heading.textContent = county ? `${centre} — ${county}` : centre;
+      card.appendChild(heading);
+
+      const dateList = document.createElement("div");
+      dateList.className = "avail-dates";
+      for (const slot of data[centre]) {
+        const row = document.createElement("div");
+        row.className = "avail-date-row";
+        const dateEl = document.createElement("span");
+        dateEl.className = "avail-date";
+        dateEl.textContent = slot.date;
+        row.appendChild(dateEl);
+        const timesEl = document.createElement("span");
+        timesEl.className = "avail-times";
+        timesEl.textContent = (slot.times || []).join(", ") || "(times not read)";
+        row.appendChild(timesEl);
+        dateList.appendChild(row);
+      }
+      card.appendChild(dateList);
+      listEl.appendChild(card);
+    }
+  } catch (e) {
+    listEl.innerHTML = '<p class="hint">Couldn\'t load the latest results — please refresh the page.</p>';
+  }
+}
+
 function getTokenFromUrl() {
   return new URLSearchParams(window.location.search).get("token");
 }

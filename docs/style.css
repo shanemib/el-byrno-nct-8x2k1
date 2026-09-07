@@ -325,6 +325,54 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
   margin-bottom: 12px;
 }
 
+/* ---- Live availability page ---- */
+.avail-header { max-width: 640px; margin-bottom: 28px; }
+.avail-header h1 { font-size: 28px; margin: 0 0 10px; color: var(--ink); }
+.avail-header .eyebrow { margin-bottom: 12px; }
+.avail-header .lede { margin: 0; }
+
+.avail-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.avail-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+
+.avail-card h3 { font-size: 15px; margin: 0 0 10px; color: var(--ink); }
+
+.avail-dates { display: flex; flex-direction: column; gap: 8px; }
+
+.avail-date-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13.5px;
+  padding: 6px 0;
+  border-top: 1px solid var(--border);
+}
+
+.avail-date-row:first-child { border-top: none; padding-top: 0; }
+
+.avail-date { color: var(--ink); font-weight: 600; }
+.avail-times { color: var(--muted); text-align: right; }
+
+.cta-link {
+  display: inline-block;
+  margin-top: 10px;
+  color: var(--green-dark);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.cta-link:hover { text-decoration: underline; }
+
 /* ---- About / how it works / FAQ ---- */
 .about {
   margin-top: 56px;

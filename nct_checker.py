@@ -53,6 +53,12 @@ MAX_DAYS_AHEAD_CAP = 90
 BASE_URL = "https://www.ncts.ie/"
 CENTRES_JSON_PATH = os.path.join(os.path.dirname(__file__), "docs", "centres.json")
 LAST_CHECKED_JSON_PATH = os.path.join(os.path.dirname(__file__), "docs", "last_checked.json")
+AVAILABILITY_JSON_PATH = os.path.join(os.path.dirname(__file__), "docs", "availability.json")
+
+# Always scan at least this far ahead, regardless of what current subscribers
+# asked for — otherwise the public "live availability" page would only see
+# as far as the shortest/tightest subscriber window in the database.
+MIN_PUBLIC_SCAN_DAYS = 28
 
 
 async def run_flow(page):
@@ -308,6 +314,26 @@ def write_last_checked():
         print(f"[last_checked] failed to write last_checked.json: {e}")
 
 
+def write_availability_snapshot(results: dict[str, list[dict]]):
+    """Save what this run actually found to docs/availability.json, so the
+    site's 'Live availability' page can show real current slots — not tied
+    to any one subscriber's centres or window. Public info only (centre
+    names, dates, times); nothing about who's subscribed."""
+    try:
+        snapshot = {
+            centre: [
+                {"date": s["date"], "iso": s["parsed"].date().isoformat(), "times": s["times"]}
+                for s in slots
+            ]
+            for centre, slots in results.items()
+        }
+        os.makedirs(os.path.dirname(AVAILABILITY_JSON_PATH), exist_ok=True)
+        with open(AVAILABILITY_JSON_PATH, "w") as f:
+            json.dump(snapshot, f, indent=2)
+    except Exception as e:
+        print(f"[availability] failed to write availability.json: {e}")
+
+
 def maybe_update_centres_file(all_centres: list[str]):
     try:
         existing = []
@@ -334,7 +360,7 @@ async def main():
 
     subscribers = fetch_verified_subscribers()
     days_needed = [s.get("days_ahead") or DEFAULT_DAYS_AHEAD for s in subscribers]
-    max_days = min(max(days_needed, default=DEFAULT_DAYS_AHEAD), MAX_DAYS_AHEAD_CAP)
+    max_days = min(max(max(days_needed, default=DEFAULT_DAYS_AHEAD), MIN_PUBLIC_SCAN_DAYS), MAX_DAYS_AHEAD_CAP)
     cutoff = datetime.now() + timedelta(days=max_days)
 
     results: dict[str, list[dict]] = {}
@@ -368,6 +394,7 @@ async def main():
         print("No availability within window across any centre.")
 
     notify_subscribers(results, subscribers)
+    write_availability_snapshot(results)
     write_last_checked()
 
 

@@ -46,16 +46,16 @@ jobs:
           TWILIO_CONTENT_SID: ${{ secrets.TWILIO_CONTENT_SID }}
         run: python nct_checker.py
 
-      - name: Commit updated centre list and last-checked time (if changed)
+      - name: Commit updated centre list, availability and last-checked time (if changed)
         run: |
-          if ! git diff --quiet -- docs/centres.json docs/last_checked.json; then
+          if ! git diff --quiet -- docs/centres.json docs/last_checked.json docs/availability.json; then
             git config user.name "nct-checker-bot"
             git config user.email "actions@users.noreply.github.com"
-            git add docs/centres.json docs/last_checked.json
-            git commit -m "Update centres.json / last_checked.json"
+            git add docs/centres.json docs/last_checked.json docs/availability.json
+            git commit -m "Update centres.json / availability.json / last_checked.json"
             git push
           else
-            echo "centres.json and last_checked.json unchanged"
+            echo "centres.json, availability.json and last_checked.json unchanged"
           fi
 
       - name: Alert on failure
