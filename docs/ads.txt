@@ -1,0 +1,6 @@
+# Fill this in once your AdSense account is approved — Google's Publisher
+# Center will give you the exact line to paste here (it includes your
+# publisher ID). Until then this file being "empty" of real entries is fine.
+#
+# It will look like:
+# google.com, pub-1234567890123456, DIRECT, f08c47fec0942fa0

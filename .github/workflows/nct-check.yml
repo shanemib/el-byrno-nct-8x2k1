@@ -5,6 +5,11 @@ on:
     - cron: "0 * * * *"   # every hour, on the hour (UTC)
   workflow_dispatch: {}    # lets you trigger it manually to test
 
+# Needed so this workflow can commit docs/centres.json back to the repo
+# whenever the live list of NCT centres changes.
+permissions:
+  contents: write
+
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -17,11 +22,32 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install playwright requests
+          pip install -r requirements.txt
           playwright install --with-deps chromium
 
       - name: Run checker
         env:
           NCT_REG: ${{ secrets.NCT_REG }}
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          RESEND_FROM: ${{ secrets.RESEND_FROM }}
+          SITE_BASE_URL: ${{ vars.SITE_BASE_URL }}
+          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+          TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
+          TWILIO_WHATSAPP_FROM: ${{ secrets.TWILIO_WHATSAPP_FROM }}
+          TWILIO_CONTENT_SID: ${{ secrets.TWILIO_CONTENT_SID }}
         run: python nct_checker.py
+
+      - name: Commit updated centre list (if changed)
+        run: |
+          if ! git diff --quiet -- docs/centres.json; then
+            git config user.name "nct-checker-bot"
+            git config user.email "actions@users.noreply.github.com"
+            git add docs/centres.json
+            git commit -m "Update centres.json"
+            git push
+          else
+            echo "centres.json unchanged"
+          fi

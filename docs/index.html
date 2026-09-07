@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NCT Appointment Alerts</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header class="page-header">
+      <h1>NCT Appointment Alerts</h1>
+      <p>Pick the test centres you'd use and how soon you need a test — we check every hour and email you the moment a slot opens up.</p>
+    </header>
+
+    <div class="card">
+      <form id="signupForm">
+        <div class="field">
+          <label for="email">Email address</label>
+          <input type="email" id="email" name="email" required placeholder="you@example.com" />
+        </div>
+
+        <div class="field">
+          <label for="whatsapp">WhatsApp number <span class="hint">(optional — for the upcoming paid instant-alert plan, not used yet)</span></label>
+          <input type="tel" id="whatsapp" name="whatsapp" placeholder="+353871234567" />
+        </div>
+
+        <div class="field">
+          <label for="weeksAhead">Alert me about appointments within</label>
+          <select id="weeksAhead" name="weeksAhead">
+            <option value="2">2 weeks</option>
+            <option value="4" selected>4 weeks</option>
+            <option value="6">6 weeks</option>
+            <option value="8">8 weeks</option>
+            <option value="12">12 weeks</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Test centres to watch</label>
+          <div class="centre-grid" id="centreGrid">
+            <p class="hint">Loading centres…</p>
+          </div>
+          <p class="hint">Select as many as you like — you'll be emailed for any of them.</p>
+        </div>
+
+        <button type="submit">Sign up for alerts</button>
+        <div class="status" id="status"></div>
+      </form>
+    </div>
+
+    <div id="adSlot" hidden style="margin-top:28px;"></div>
+
+    <section class="about">
+      <h2>How it works</h2>
+      <p>
+        Booking an NCT test through <a href="https://www.ncts.ie/">ncts.ie</a>
+        often means checking back day after day waiting for a slot to open at
+        a centre near you. This tool does that checking for you: every hour,
+        it walks the same booking flow you would and reads the real
+        availability at every test centre in the country.
+      </p>
+      <p>
+        Sign up with your email, tell it which centres work for you and how
+        soon you need a test, and confirm your email address. From then on
+        you'll only hear from it when there's actually something to book —
+        no noise, and you can unsubscribe at any time.
+      </p>
+      <h2>Frequently asked questions</h2>
+      <p>
+        <strong>Is this run by the NCTS?</strong> No — this is an independent,
+        unofficial tool that reads the same publicly available booking
+        calendar you'd see on ncts.ie. It doesn't book anything on your
+        behalf; it just tells you when to go book it yourself.
+      </p>
+      <p>
+        <strong>Is my email shared with anyone?</strong> No — it's used only
+        to send you availability alerts for the centres you chose.
+      </p>
+    </section>
+
+    <footer>
+      Checked automatically, hourly, straight from <a href="https://www.ncts.ie/">ncts.ie</a>.
+      Unsubscribe any time from the link in your alert emails.
+    </footer>
+  </div>
+
+  <script src="./config.js"></script>
+  <script src="./app.js"></script>
+  <script>initSignupForm(); initAds();</script>
+</body>
+</html>

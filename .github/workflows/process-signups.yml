@@ -1,0 +1,28 @@
+name: Process New Signups
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"   # roughly every 10 minutes (GitHub may delay this a bit)
+  workflow_dispatch: {}
+
+jobs:
+  process:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Send verification emails for new signups
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          RESEND_FROM: ${{ secrets.RESEND_FROM }}
+          SITE_BASE_URL: ${{ vars.SITE_BASE_URL }}
+        run: python process_signups.py
