@@ -21,16 +21,24 @@ from resend_utils import send_email
 SITE_BASE_URL = os.environ.get("SITE_BASE_URL", "").rstrip("/")
 
 
-def build_verification_email(verify_link: str) -> tuple[str, str]:
+def build_verification_email(verify_link: str, manage_link: str) -> tuple[str, str]:
     html = f"""
     <p>Thanks for signing up for NCT appointment alerts!</p>
     <p>Click below to confirm your email and start receiving alerts:</p>
     <p><a href="{verify_link}" style="display:inline-block;padding:10px 18px;
        background:#0b6e4f;color:#fff;text-decoration:none;border-radius:6px;">
        Confirm my email</a></p>
+    <p style="color:#888;font-size:12px;">
+      Changed your mind about which centres or time window? You can update
+      it any time once confirmed: <a href="{manage_link}">manage your alert</a>.
+    </p>
     <p>If you didn't sign up for this, you can just ignore this email.</p>
     """
-    text = f"Confirm your NCT appointment alert subscription: {verify_link}\n\nIf you didn't sign up for this, ignore this email."
+    text = (
+        f"Confirm your NCT appointment alert subscription: {verify_link}\n\n"
+        f"Manage your alert (centres/time window) any time: {manage_link}\n\n"
+        "If you didn't sign up for this, ignore this email."
+    )
     return html, text
 
 
@@ -39,14 +47,15 @@ def main():
         "subscribers",
         {
             "verification_sent": "eq.false",
-            "select": "id,email,verify_token",
+            "select": "id,email,verify_token,unsubscribe_token",
         },
     )
     print(f"[signups] {len(pending)} pending verification email(s)")
 
     for row in pending:
         verify_link = f"{SITE_BASE_URL}/verify.html?token={row['verify_token']}"
-        html, text = build_verification_email(verify_link)
+        manage_link = f"{SITE_BASE_URL}/manage.html?token={row['unsubscribe_token']}"
+        html, text = build_verification_email(verify_link, manage_link)
         sent = send_email(
             to=row["email"],
             subject="Confirm your NCT appointment alert",

@@ -83,10 +83,13 @@ alter table subscribers enable row level security;
 
 -- ---------------------------------------------------------------------------
 -- signup_subscriber: called by the website when someone submits the form.
--- Drop the old 3-arg version first so there's only ever one signature —
--- otherwise Postgres would keep both as separate overloaded functions.
+-- Drop older versions first: Postgres allows `create or replace` to change a
+-- function's body, but not to rename one of its parameters (which is what
+-- happened when weeks_ahead became days_ahead) — so the old signature has to
+-- go first, the same as the original 3-arg version before it.
 -- ---------------------------------------------------------------------------
 drop function if exists signup_subscriber(text, text[], int);
+drop function if exists signup_subscriber(text, text[], int, text);
 
 create or replace function signup_subscriber(
   p_email text,
@@ -168,3 +171,88 @@ $$;
 
 revoke all on function unsubscribe_subscriber(text) from public;
 grant execute on function unsubscribe_subscriber(text) to anon;
+
+-- ---------------------------------------------------------------------------
+-- get_subscriber_prefs / update_subscriber_prefs: power manage.html, so
+-- someone can change their centres/window/WhatsApp number without having to
+-- unsubscribe and sign up again. Both are keyed off the same unsubscribe
+-- token already in every alert email — same capability-based-security
+-- pattern as unsubscribe_subscriber above (the token itself is the secret;
+-- nothing else identifies the row). Only ever returns/touches the one row
+-- matching that exact token.
+-- ---------------------------------------------------------------------------
+create or replace function get_subscriber_prefs(p_token text)
+returns table(email text, centres text[], days_ahead int, whatsapp_number text)
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  return query
+    select s.email, s.centres, s.days_ahead, s.whatsapp_number
+    from subscribers s
+    where s.unsubscribe_token = p_token and s.verified = true;
+end;
+$$;
+
+revoke all on function get_subscriber_prefs(text) from public;
+grant execute on function get_subscriber_prefs(text) to anon;
+
+create or replace function update_subscriber_prefs(
+  p_token text,
+  p_centres text[],
+  p_days_ahead int,
+  p_whatsapp_number text default null
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  affected int;
+begin
+  if p_centres is null or array_length(p_centres, 1) is null then
+    raise exception 'Please choose at least one test centre';
+  end if;
+  if p_days_ahead is null or p_days_ahead < 1 or p_days_ahead > 90 then
+    raise exception 'days_ahead must be between 1 and 90';
+  end if;
+  if p_whatsapp_number is not null and p_whatsapp_number !~ '^\+[1-9]\d{6,14}$' then
+    raise exception 'WhatsApp number must be in international format, e.g. +353871234567';
+  end if;
+
+  -- Reset the dedupe state: switching centres/window means old "already
+  -- notified" entries no longer mean anything, and it's fine (arguably
+  -- good) if they get a fresh email about something already open under
+  -- their new choices.
+  update subscribers
+  set centres = p_centres,
+      days_ahead = p_days_ahead,
+      whatsapp_number = p_whatsapp_number,
+      notified = '{}'::jsonb
+  where unsubscribe_token = p_token and verified = true;
+  get diagnostics affected = row_count;
+  return affected > 0;
+end;
+$$;
+
+revoke all on function update_subscriber_prefs(text, text[], int, text) from public;
+grant execute on function update_subscriber_prefs(text, text[], int, text) to anon;
+
+-- ---------------------------------------------------------------------------
+-- get_subscriber_count: powers a small "N people already getting alerts"
+-- trust line on the homepage. Aggregate only — no rows, no emails, nothing
+-- identifying, so it's safe through the public anon key.
+-- ---------------------------------------------------------------------------
+create or replace function get_subscriber_count()
+returns int
+language sql
+security definer
+set search_path = public
+as $$
+  select count(*)::int from subscribers where verified = true;
+$$;
+
+revoke all on function get_subscriber_count() from public;
+grant execute on function get_subscriber_count() to anon;

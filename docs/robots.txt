@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://shanemib.github.io/el-byrno-nct-8x2k1/sitemap.xml

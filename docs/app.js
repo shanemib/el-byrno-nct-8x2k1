@@ -203,7 +203,7 @@ function filterCentres(grid, query) {
   }
 }
 
-async function loadCentres() {
+async function loadCentres(preselected) {
   const grid = document.getElementById("centreGrid");
   const searchInput = document.getElementById("centreSearch");
   try {
@@ -251,6 +251,14 @@ async function loadCentres() {
     if (searchInput) {
       searchInput.addEventListener("input", () => filterCentres(grid, searchInput.value));
     }
+
+    if (preselected && preselected.length) {
+      const set = new Set(preselected);
+      grid.querySelectorAll('input[name="centre"]').forEach((cb) => {
+        if (set.has(cb.value)) cb.checked = true;
+      });
+      updateSelectedCount(grid);
+    }
   } catch (e) {
     grid.innerHTML = '<p class="hint">Couldn\'t load the centre list — please refresh the page.</p>';
   }
@@ -265,6 +273,19 @@ function initSignupForm() {
 
   loadCentres();
   loadLastChecked();
+
+  // Small trust signal — only shows once there's a real number worth
+  // mentioning, so a handful of early testers doesn't look sparse.
+  const SOCIAL_PROOF_MIN = 5;
+  callRpc("get_subscriber_count", {})
+    .then((count) => {
+      const el = document.getElementById("socialProof");
+      if (el && typeof count === "number" && count >= SOCIAL_PROOF_MIN) {
+        el.textContent = `Join ${count} people already getting NCT alerts.`;
+        el.hidden = false;
+      }
+    })
+    .catch(() => {});
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -439,6 +460,83 @@ async function initVerifyPage() {
   } catch (err) {
     resultEl.innerHTML = `<div class="icon">⚠️</div><p>${err.message}</p>`;
   }
+}
+
+async function initManagePage() {
+  const tokenError = document.getElementById("tokenError");
+  const tokenErrorText = document.getElementById("tokenErrorText");
+  const manageWrap = document.getElementById("manageWrap");
+  const token = getTokenFromUrl();
+
+  const showError = (msg) => {
+    tokenErrorText.textContent = msg;
+    tokenError.hidden = false;
+    manageWrap.hidden = true;
+  };
+
+  if (!token) {
+    showError("Missing manage link. Please use the link from one of your alert emails.");
+    return;
+  }
+
+  let prefs;
+  try {
+    const rows = await callRpc("get_subscriber_prefs", { p_token: token });
+    if (!rows || rows.length === 0) {
+      showError(
+        "We couldn't find that subscription — the link may be out of date, or you've already unsubscribed."
+      );
+      return;
+    }
+    prefs = rows[0];
+  } catch (err) {
+    showError(err.message);
+    return;
+  }
+
+  manageWrap.hidden = false;
+  document.getElementById("manageEmail").textContent = `Editing alerts for ${prefs.email}`;
+  document.getElementById("daysAhead").value = String(prefs.days_ahead || 28);
+  document.getElementById("whatsapp").value = prefs.whatsapp_number || "";
+  document.getElementById("unsubLink").href = `./unsubscribe.html?token=${encodeURIComponent(token)}`;
+
+  loadCentres(prefs.centres || []);
+
+  const form = document.getElementById("manageForm");
+  const statusEl = document.getElementById("status");
+  const submitBtn = form.querySelector("button[type=submit]");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const whatsapp = document.getElementById("whatsapp").value.trim();
+    const daysAhead = parseInt(document.getElementById("daysAhead").value, 10);
+    const centres = Array.from(
+      form.querySelectorAll('input[name="centre"]:checked')
+    ).map((c) => c.value);
+
+    if (centres.length === 0) {
+      showStatus(statusEl, "Please choose at least one test centre.", "error");
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Saving...";
+
+    try {
+      await callRpc("update_subscriber_prefs", {
+        p_token: token,
+        p_centres: centres,
+        p_days_ahead: daysAhead,
+        p_whatsapp_number: whatsapp || null,
+      });
+      showStatus(statusEl, "Saved — your alerts are updated.", "success");
+    } catch (err) {
+      showStatus(statusEl, err.message, "error");
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Save changes";
+    }
+  });
 }
 
 async function initUnsubscribePage() {

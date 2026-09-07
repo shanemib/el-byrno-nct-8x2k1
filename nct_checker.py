@@ -230,7 +230,7 @@ def fetch_verified_subscribers() -> list[dict]:
     return rows
 
 
-def build_email_body(matches: list[dict], unsubscribe_link: str) -> tuple[str, str]:
+def build_email_body(matches: list[dict], unsubscribe_link: str, manage_link: str) -> tuple[str, str]:
     lines_html = "".join(
         f"<li><strong>{m['centre']}</strong> — {m['date']}: {', '.join(m['times'])}</li>"
         for m in matches
@@ -240,12 +240,13 @@ def build_email_body(matches: list[dict], unsubscribe_link: str) -> tuple[str, s
     <ul>{lines_html}</ul>
     <p>Book quickly at <a href="https://www.ncts.ie/">ncts.ie</a> — slots fill fast.</p>
     <p style="color:#888;font-size:12px;">
+      Want different centres or a different time window? <a href="{manage_link}">Manage your alert</a>.
       Don't want these alerts anymore? <a href="{unsubscribe_link}">Unsubscribe</a>.
     </p>
     """
     text = "New NCT appointment availability:\n" + "\n".join(
         f"- {m['centre']} — {m['date']}: {', '.join(m['times'])}" for m in matches
-    ) + f"\n\nBook at https://www.ncts.ie/\nUnsubscribe: {unsubscribe_link}"
+    ) + f"\n\nBook at https://www.ncts.ie/\nManage your alert: {manage_link}\nUnsubscribe: {unsubscribe_link}"
     return html, text
 
 
@@ -278,7 +279,8 @@ def notify_subscribers(results: dict, subscribers: list[dict]):
 
         if matches:
             unsubscribe_link = f"{SITE_BASE_URL}/unsubscribe.html?token={sub['unsubscribe_token']}"
-            html, text = build_email_body(matches, unsubscribe_link)
+            manage_link = f"{SITE_BASE_URL}/manage.html?token={sub['unsubscribe_token']}"
+            html, text = build_email_body(matches, unsubscribe_link, manage_link)
             sent = send_email(
                 to=sub["email"],
                 subject="New NCT appointment availability",

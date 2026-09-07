@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="Free NCT appointment alerts for Ireland. Pick your test centres and time window — we check every NCT centre hourly and email you the moment a slot opens up." />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%230b6e4f'/%3E%3Cpath d='M30 52l14 14 26-30' stroke='white' stroke-width='9' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <link rel="manifest" href="./manifest.json" />
+  <meta name="theme-color" content="#0b6e4f" />
+  <link rel="apple-touch-icon" href="./icon-192.png" />
 
   <!-- Social sharing preview (WhatsApp/Facebook/Twitter). Update og:url here
        if/when this moves to a custom domain (see SETUP.md Phase 2). -->
@@ -17,6 +20,47 @@
 
   <title>NCT Appointment Alerts</title>
   <link rel="stylesheet" href="./style.css" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Is this run by the NCTS?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No — this is an independent, unofficial tool that reads the same publicly available booking calendar you'd see on ncts.ie. It doesn't book anything on your behalf; it just tells you when to go book it yourself."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is my email shared with anyone?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No — it's used only to send you availability alerts for the centres you chose."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How often does it check?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Every hour, automatically. You don't need to keep a tab open or do anything after you confirm your email."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Will I get spammed with emails?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No — you're only emailed when a new slot matching your centres and time window appears, and never emailed twice about the same one."
+        }
+      }
+    ]
+  }
+  </script>
 </head>
 <body>
   <div class="wrap">
@@ -38,6 +82,7 @@
           slot. From then on you'll hear from us only when there's actually
           something to book.
         </p>
+        <p class="hint" id="socialProof" hidden style="margin:-14px 0 20px;"></p>
 
         <ol class="steps">
           <li><span class="step-num">1</span><div><strong>Choose your centres &amp; window</strong><br />Any number of centres, from 3 days out to 12 weeks.</div></li>
@@ -161,7 +206,7 @@
 
     <footer>
       Checked automatically, hourly, straight from <a href="https://www.ncts.ie/">ncts.ie</a>.
-      Unsubscribe any time from the link in your alert emails.
+      Unsubscribe any time from the link in your alert emails. · <a href="./privacy.html">Privacy</a>
     </footer>
   </div>
 
