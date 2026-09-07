@@ -1,3 +1,58 @@
+// Best-effort centre → county mapping, used only to make the centre picker
+// easier to scan/search. Purely cosmetic — never sent to the backend.
+const CENTRE_COUNTIES = {
+  "Abbeyfeale": "Limerick",
+  "Arklow": "Wicklow",
+  "Athlone": "Westmeath",
+  "Ballina": "Mayo",
+  "Ballinasloe": "Galway",
+  "Cahir": "Tipperary",
+  "Cahirciveen": "Kerry",
+  "Carlow": "Carlow",
+  "Carndonagh": "Donegal",
+  "Carrick-on-Shannon": "Leitrim",
+  "Castleisland": "Kerry",
+  "Castlerea": "Roscommon",
+  "Cavan": "Cavan",
+  "Charleville": "Cork",
+  "Clifden": "Galway",
+  "Cork-Blarney": "Cork",
+  "Cork-Little Island": "Cork",
+  "Deansgrange": "Dublin",
+  "Derrybeg": "Donegal",
+  "Donegal Town": "Donegal",
+  "Drogheda": "Louth",
+  "Dundalk": "Louth",
+  "Ennis": "Clare",
+  "Enniscorthy": "Wexford",
+  "Fonthill": "Dublin",
+  "Galway": "Galway",
+  "Greenhills (Exit 11,M50)": "Dublin",
+  "Kells": "Meath",
+  "Kilkenny": "Kilkenny",
+  "Killarney": "Kerry",
+  "Letterkenny": "Donegal",
+  "Limerick": "Limerick",
+  "Longford": "Longford",
+  "Macroom": "Cork",
+  "Monaghan": "Monaghan",
+  "Mullingar": "Westmeath",
+  "Naas": "Kildare",
+  "Navan": "Meath",
+  "Nenagh": "Tipperary",
+  "Northpoint 1 (Exit 4, M50)": "Dublin",
+  "Northpoint 2 (Exit 4, M50)": "Dublin",
+  "Portlaoise": "Laois",
+  "Skibbereen": "Cork",
+  "Sligo": "Sligo",
+  "Tralee": "Kerry",
+  "Tuam": "Galway",
+  "Tullamore": "Offaly",
+  "Waterford": "Waterford",
+  "Westport": "Mayo",
+  "Youghal": "Cork",
+};
+
 function initAds() {
   const { ADSENSE_CLIENT_ID, ADSENSE_SLOT_ID } = window.NCT_CONFIG || {};
   const slot = document.getElementById("adSlot");
@@ -19,6 +74,25 @@ function initAds() {
       data-ad-format="auto"
       data-full-width-responsive="true"></ins>`;
   (window.adsbygoogle = window.adsbygoogle || []).push({});
+}
+
+// Turn an RPC error into something a visitor should actually see. Our own
+// SQL functions raise deliberate, friendly messages (e.g. "Please choose at
+// least one test centre") — those pass straight through. Anything else
+// (a Postgres/PostgREST internal error, a missing function, a network
+// hiccup) gets swapped for a generic apology instead of raw backend text.
+function prettifyError(message) {
+  const knownPrefixes = [
+    "Please enter a valid email address",
+    "Please choose at least one test centre",
+    "days_ahead must be",
+    "weeks_ahead must be",
+    "WhatsApp number must be",
+  ];
+  if (knownPrefixes.some((p) => message && message.startsWith(p))) {
+    return message;
+  }
+  return "Something went wrong on our end — please try again in a minute.";
 }
 
 async function callRpc(fnName, args) {
@@ -44,7 +118,7 @@ async function callRpc(fnName, args) {
     const message =
       (body && (body.message || body.hint || body.error_description)) ||
       "Something went wrong — please try again.";
-    throw new Error(message);
+    throw new Error(prettifyError(message));
   }
   return body;
 }
@@ -52,10 +126,43 @@ async function callRpc(fnName, args) {
 function showStatus(el, message, kind) {
   el.textContent = message;
   el.className = `status show ${kind}`;
+  el.setAttribute("role", kind === "error" ? "alert" : "status");
+}
+
+function updateSelectedCount(grid) {
+  const countEl = document.getElementById("selectedCount");
+  if (!countEl) return;
+  const n = grid.querySelectorAll('input[name="centre"]:checked').length;
+  countEl.textContent = n === 1 ? "1 selected" : `${n} selected`;
+}
+
+function filterCentres(grid, query) {
+  const q = query.trim().toLowerCase();
+  const options = grid.querySelectorAll(".centre-option");
+  let anyVisible = false;
+  options.forEach((opt) => {
+    const haystack = opt.dataset.search || "";
+    const match = !q || haystack.includes(q);
+    opt.classList.toggle("is-hidden", !match);
+    if (match) anyVisible = true;
+  });
+  let emptyMsg = grid.querySelector(".no-match-hint");
+  if (!anyVisible) {
+    if (!emptyMsg) {
+      emptyMsg = document.createElement("p");
+      emptyMsg.className = "hint no-match-hint";
+      emptyMsg.textContent = "No centres match that search.";
+      grid.appendChild(emptyMsg);
+    }
+  } else if (emptyMsg) {
+    emptyMsg.remove();
+  }
 }
 
 async function loadCentres() {
   const grid = document.getElementById("centreGrid");
+  const searchInput = document.getElementById("centreSearch");
+  const liveStatus = document.getElementById("liveStatus");
   try {
     const resp = await fetch("./centres.json", { cache: "no-store" });
     const centres = await resp.json();
@@ -64,16 +171,43 @@ async function loadCentres() {
         '<p class="hint">No centre list yet — the checker hasn\'t run for the first time. Check back shortly.</p>';
       return;
     }
+
+    if (liveStatus) {
+      liveStatus.textContent = `🟢 Live — scanning all ${centres.length} NCT centres, hourly`;
+    }
+
     grid.innerHTML = "";
     for (const name of centres) {
+      const county = CENTRE_COUNTIES[name] || "";
       const label = document.createElement("label");
+      label.className = "centre-option";
+      label.dataset.search = `${name} ${county}`.toLowerCase();
+
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
       checkbox.name = "centre";
       checkbox.value = name;
+      checkbox.addEventListener("change", () => updateSelectedCount(grid));
+
+      const nameWrap = document.createElement("span");
+      nameWrap.className = "centre-name-wrap";
+      const nameEl = document.createElement("span");
+      nameEl.textContent = name;
+      nameWrap.appendChild(nameEl);
+      if (county) {
+        const countyEl = document.createElement("span");
+        countyEl.className = "centre-county";
+        countyEl.textContent = county;
+        nameWrap.appendChild(countyEl);
+      }
+
       label.appendChild(checkbox);
-      label.appendChild(document.createTextNode(name));
+      label.appendChild(nameWrap);
       grid.appendChild(label);
+    }
+
+    if (searchInput) {
+      searchInput.addEventListener("input", () => filterCentres(grid, searchInput.value));
     }
   } catch (e) {
     grid.innerHTML = '<p class="hint">Couldn\'t load the centre list — please refresh the page.</p>';
@@ -118,6 +252,7 @@ function initSignupForm() {
         "success"
       );
       form.reset();
+      updateSelectedCount(document.getElementById("centreGrid"));
     } catch (err) {
       showStatus(statusEl, err.message, "error");
     } finally {
