@@ -322,59 +322,94 @@ function initSignupForm() {
   });
 }
 
+function formatWindow(days) {
+  if (days == null) return null;
+  if (days % 7 === 0) {
+    const weeks = days / 7;
+    return weeks === 1 ? "1 week" : `${weeks} weeks`;
+  }
+  return days === 1 ? "1 day" : `${days} days`;
+}
+
 async function initAvailabilityPage() {
   const listEl = document.getElementById("availabilityList");
+  const noAvailSection = document.getElementById("noAvailSection");
+  const noAvailList = document.getElementById("noAvailList");
+  const windowNote = document.getElementById("windowNote");
 
-  // Reuses the same "N centres, last checked X ago" line as the homepage.
-  fetch("./centres.json", { cache: "no-store" })
-    .then((r) => r.json())
-    .then((centres) => {
-      if (Array.isArray(centres)) {
-        centreCount = centres.length;
-        renderLiveStatus();
-      }
-    })
-    .catch(() => {});
   loadLastChecked();
+
+  let allCentres = [];
+  try {
+    const centresResp = await fetch("./centres.json", { cache: "no-store" });
+    allCentres = centresResp.ok ? await centresResp.json() : [];
+    if (Array.isArray(allCentres)) {
+      centreCount = allCentres.length;
+      renderLiveStatus();
+    }
+  } catch (e) {
+    // fall through — we can still render availability.json alone
+  }
 
   try {
     const resp = await fetch("./availability.json", { cache: "no-store" });
-    const data = resp.ok ? await resp.json() : {};
-    const centreNames = Object.keys(data).sort();
+    const raw = resp.ok ? await resp.json() : {};
+    // Support both the current {window_days, centres} shape and the
+    // earlier flat-object shape, just in case a stale file is still live.
+    const data = raw && raw.centres ? raw.centres : raw || {};
+    const windowDays = raw && raw.window_days;
 
-    if (centreNames.length === 0) {
+    const windowText = formatWindow(windowDays) || "the next few weeks";
+    windowNote.textContent = `Showing availability within ${windowText} from today — a centre with nothing listed simply has no slots that soon.`;
+
+    const centresWithSlots = Object.keys(data).sort();
+    const fullList = allCentres.length ? allCentres.slice().sort() : centresWithSlots;
+    const centresWithoutSlots = fullList.filter((c) => !data[c] || data[c].length === 0);
+
+    if (centresWithSlots.length === 0) {
       listEl.innerHTML =
         '<p class="hint">No appointments currently available at any centre we track. Check back after the next hourly run, or sign up below to get emailed automatically.</p>';
-      return;
+    } else {
+      listEl.innerHTML = "";
+      for (const centre of centresWithSlots) {
+        const county = CENTRE_COUNTIES[centre] || "";
+        const card = document.createElement("div");
+        card.className = "avail-card";
+
+        const heading = document.createElement("h3");
+        heading.textContent = county ? `${centre} — ${county}` : centre;
+        card.appendChild(heading);
+
+        const dateList = document.createElement("div");
+        dateList.className = "avail-dates";
+        for (const slot of data[centre]) {
+          const row = document.createElement("div");
+          row.className = "avail-date-row";
+          const dateEl = document.createElement("span");
+          dateEl.className = "avail-date";
+          dateEl.textContent = slot.date;
+          row.appendChild(dateEl);
+          const timesEl = document.createElement("span");
+          timesEl.className = "avail-times";
+          timesEl.textContent = (slot.times || []).join(", ") || "(times not read)";
+          row.appendChild(timesEl);
+          dateList.appendChild(row);
+        }
+        card.appendChild(dateList);
+        listEl.appendChild(card);
+      }
     }
 
-    listEl.innerHTML = "";
-    for (const centre of centreNames) {
-      const county = CENTRE_COUNTIES[centre] || "";
-      const card = document.createElement("div");
-      card.className = "avail-card";
-
-      const heading = document.createElement("h3");
-      heading.textContent = county ? `${centre} — ${county}` : centre;
-      card.appendChild(heading);
-
-      const dateList = document.createElement("div");
-      dateList.className = "avail-dates";
-      for (const slot of data[centre]) {
-        const row = document.createElement("div");
-        row.className = "avail-date-row";
-        const dateEl = document.createElement("span");
-        dateEl.className = "avail-date";
-        dateEl.textContent = slot.date;
-        row.appendChild(dateEl);
-        const timesEl = document.createElement("span");
-        timesEl.className = "avail-times";
-        timesEl.textContent = (slot.times || []).join(", ") || "(times not read)";
-        row.appendChild(timesEl);
-        dateList.appendChild(row);
+    if (centresWithoutSlots.length > 0) {
+      noAvailSection.hidden = false;
+      noAvailList.innerHTML = "";
+      for (const centre of centresWithoutSlots) {
+        const pill = document.createElement("span");
+        pill.className = "no-avail-pill";
+        const county = CENTRE_COUNTIES[centre];
+        pill.textContent = county ? `${centre} (${county})` : centre;
+        noAvailList.appendChild(pill);
       }
-      card.appendChild(dateList);
-      listEl.appendChild(card);
     }
   } catch (e) {
     listEl.innerHTML = '<p class="hint">Couldn\'t load the latest results — please refresh the page.</p>';

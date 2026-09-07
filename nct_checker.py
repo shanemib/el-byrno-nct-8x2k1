@@ -314,19 +314,25 @@ def write_last_checked():
         print(f"[last_checked] failed to write last_checked.json: {e}")
 
 
-def write_availability_snapshot(results: dict[str, list[dict]]):
+def write_availability_snapshot(results: dict[str, list[dict]], window_days: int):
     """Save what this run actually found to docs/availability.json, so the
     site's 'Live availability' page can show real current slots — not tied
     to any one subscriber's centres or window. Public info only (centre
-    names, dates, times); nothing about who's subscribed."""
+    names, dates, times); nothing about who's subscribed.
+
+    Includes the actual window_days scanned this run, so the page can
+    honestly state how far ahead "no availability" means — that window
+    varies run to run (it's at least MIN_PUBLIC_SCAN_DAYS, but stretches
+    further if any current subscriber asked for longer)."""
     try:
-        snapshot = {
+        centres = {
             centre: [
                 {"date": s["date"], "iso": s["parsed"].date().isoformat(), "times": s["times"]}
                 for s in slots
             ]
             for centre, slots in results.items()
         }
+        snapshot = {"window_days": window_days, "centres": centres}
         os.makedirs(os.path.dirname(AVAILABILITY_JSON_PATH), exist_ok=True)
         with open(AVAILABILITY_JSON_PATH, "w") as f:
             json.dump(snapshot, f, indent=2)
@@ -394,7 +400,7 @@ async def main():
         print("No availability within window across any centre.")
 
     notify_subscribers(results, subscribers)
-    write_availability_snapshot(results)
+    write_availability_snapshot(results, max_days)
     write_last_checked()
 
 
