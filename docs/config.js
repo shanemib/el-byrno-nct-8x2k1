@@ -5,8 +5,8 @@
 // (signup_subscriber, verify_subscriber, unsubscribe_subscriber) — it has no
 // direct read or write access to the subscribers table itself.
 window.NCT_CONFIG = {
-  SUPABASE_URL: "https://YOUR-PROJECT-REF.supabase.co",
-  SUPABASE_ANON_KEY: "YOUR-ANON-PUBLIC-KEY",
+  SUPABASE_URL: "https://msielptaibzpqfqlhrig.supabase.co",
+  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zaWVscHRhaWJ6cHFmcWxocmlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg4MTA4NjQsImV4cCI6MjEwNDM4Njg2NH0.bVIRryRk_ljfPs1kd9DrHLV2_TggqE2-O7kPrgjh5Ek",
 
   // Optional — leave both blank until your AdSense account is approved.
   // Ads only load when ADSENSE_CLIENT_ID is filled in (see SETUP.md "Set up ads").
