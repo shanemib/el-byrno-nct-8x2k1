@@ -352,6 +352,54 @@ function formatWindow(days) {
   return days === 1 ? "1 day" : `${days} days`;
 }
 
+const URGENT_WINDOW_DAYS = 2; // "today or tomorrow" — the closest we can honestly
+                               // call "next 48 hours" when we only track dates, not times.
+
+function renderUrgentSection(data) {
+  const urgentList = document.getElementById("urgentList");
+  if (!urgentList) return; // page doesn't have the urgent section (shouldn't happen, but be safe)
+
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() + URGENT_WINDOW_DAYS - 1);
+  const cutoffIso = cutoff.toISOString().slice(0, 10);
+
+  const matches = [];
+  for (const centre of Object.keys(data)) {
+    for (const slot of data[centre] || []) {
+      if (slot.iso >= todayIso && slot.iso <= cutoffIso) {
+        matches.push({ centre, ...slot });
+      }
+    }
+  }
+  matches.sort((a, b) => (a.iso < b.iso ? -1 : a.iso > b.iso ? 1 : a.centre.localeCompare(b.centre)));
+
+  if (matches.length === 0) {
+    urgentList.innerHTML =
+      '<p class="urgent-empty">Nothing that short-notice right now — check back after the next hourly check, or sign up below to get emailed the moment something opens.</p>';
+    return;
+  }
+
+  urgentList.innerHTML = "";
+  for (const m of matches) {
+    const county = CENTRE_COUNTIES[m.centre] || "";
+    const card = document.createElement("div");
+    card.className = "urgent-card";
+    const heading = document.createElement("h4");
+    heading.textContent = county ? `${m.centre} — ${county}` : m.centre;
+    card.appendChild(heading);
+    const when = document.createElement("div");
+    when.className = "urgent-when";
+    when.textContent = m.date;
+    card.appendChild(when);
+    const times = document.createElement("div");
+    times.className = "avail-times";
+    times.textContent = (m.times || []).join(", ") || "(times not read)";
+    card.appendChild(times);
+    urgentList.appendChild(card);
+  }
+}
+
 async function initAvailabilityPage() {
   const listEl = document.getElementById("availabilityList");
   const noAvailSection = document.getElementById("noAvailSection");
@@ -382,6 +430,8 @@ async function initAvailabilityPage() {
 
     const windowText = formatWindow(windowDays) || "the next few weeks";
     windowNote.textContent = `Showing availability within ${windowText} from today — a centre with nothing listed simply has no slots that soon.`;
+
+    renderUrgentSection(data);
 
     const centresWithSlots = Object.keys(data).sort();
     const fullList = allCentres.length ? allCentres.slice().sort() : centresWithSlots;
@@ -434,6 +484,8 @@ async function initAvailabilityPage() {
     }
   } catch (e) {
     listEl.innerHTML = '<p class="hint">Couldn\'t load the latest results — please refresh the page.</p>';
+    const urgentList = document.getElementById("urgentList");
+    if (urgentList) urgentList.innerHTML = '<p class="hint">Couldn\'t load the latest results.</p>';
   }
 }
 
@@ -537,6 +589,130 @@ async function initManagePage() {
       submitBtn.textContent = "Save changes";
     }
   });
+}
+
+const STATS_MIN_RUNS_FOR_CONFIDENCE = 20; // roughly a day of hourly runs
+
+function formatTrackingSince(iso) {
+  if (!iso) return null;
+  try {
+    return new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+  } catch (e) {
+    return null;
+  }
+}
+
+async function initStatsPage() {
+  const noteEl = document.getElementById("statsNote");
+  const summaryEl = document.getElementById("statsSummary");
+  const tableWrap = document.getElementById("statsTableWrap");
+
+  let stats;
+  try {
+    stats = await callRpc("get_stats", { p_lookback_days: 30 });
+  } catch (err) {
+    summaryEl.innerHTML = `<p class="hint">${err.message}</p>`;
+    return;
+  }
+
+  const totalRuns = stats && stats.total_runs ? stats.total_runs : 0;
+  const centres = (stats && stats.centres) || [];
+
+  if (!stats || totalRuns === 0 || centres.length === 0) {
+    noteEl.hidden = false;
+    noteEl.textContent =
+      "We only just started tracking history for these stats — check back in a few days once more hourly checks have run.";
+    summaryEl.innerHTML = "";
+    tableWrap.innerHTML = "";
+    return;
+  }
+
+  if (totalRuns < STATS_MIN_RUNS_FOR_CONFIDENCE) {
+    noteEl.hidden = false;
+    noteEl.textContent = `Still early days — these numbers are based on only ${totalRuns} hourly check${totalRuns === 1 ? "" : "s"} so far and will get more reliable over time.`;
+  } else {
+    noteEl.hidden = true;
+  }
+
+  const since = formatTrackingSince(stats.tracking_since);
+  const shortNoticeRate = stats.short_notice_rate_7d;
+
+  summaryEl.innerHTML = "";
+  const cards = [
+    {
+      value: shortNoticeRate == null ? "—" : `${shortNoticeRate}%`,
+      label: "of hourly checks found a short-notice (within 7 days) slot somewhere in the country",
+    },
+    { value: String(totalRuns), label: "hourly checks in the last 30 days" },
+    { value: String(centres.length), label: "centres tracked" },
+  ];
+  for (const c of cards) {
+    const card = document.createElement("div");
+    card.className = "stat-card";
+    const value = document.createElement("span");
+    value.className = "stat-value";
+    value.textContent = c.value;
+    const label = document.createElement("span");
+    label.className = "stat-label";
+    label.textContent = c.label;
+    card.appendChild(value);
+    card.appendChild(label);
+    summaryEl.appendChild(card);
+  }
+  if (since) {
+    const card = document.createElement("div");
+    card.className = "stat-card";
+    const value = document.createElement("span");
+    value.className = "stat-value";
+    value.style.fontSize = "16px";
+    value.textContent = since;
+    const label = document.createElement("span");
+    label.className = "stat-label";
+    label.textContent = "tracking history since";
+    card.appendChild(value);
+    card.appendChild(label);
+    summaryEl.appendChild(card);
+  }
+
+  tableWrap.innerHTML = "";
+  const table = document.createElement("table");
+  table.className = "stats-table";
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>Centre</th>
+        <th>Availability rate (30d)</th>
+        <th>Typical wait when available</th>
+        <th>Checks</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  `;
+  const tbody = table.querySelector("tbody");
+  for (const row of centres) {
+    const county = CENTRE_COUNTIES[row.centre] || "";
+    const tr = document.createElement("tr");
+
+    const nameTd = document.createElement("td");
+    nameTd.textContent = county ? `${row.centre} (${county})` : row.centre;
+    tr.appendChild(nameTd);
+
+    const rateTd = document.createElement("td");
+    const rate = row.availability_rate == null ? 0 : row.availability_rate;
+    rateTd.innerHTML = `<span class="stats-bar-track"><span class="stats-bar-fill" style="width:${Math.min(100, rate)}%"></span></span>${row.availability_rate == null ? "—" : rate + "%"}`;
+    tr.appendChild(rateTd);
+
+    const waitTd = document.createElement("td");
+    waitTd.textContent = row.avg_soonest_days == null ? "—" : `~${row.avg_soonest_days} day${row.avg_soonest_days === 1 ? "" : "s"}`;
+    tr.appendChild(waitTd);
+
+    const checksTd = document.createElement("td");
+    checksTd.textContent = String(row.checks);
+    tr.appendChild(checksTd);
+
+    tbody.appendChild(tr);
+  }
+  tableWrap.appendChild(table);
 }
 
 async function initUnsubscribePage() {

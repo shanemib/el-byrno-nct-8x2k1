@@ -38,7 +38,7 @@ from datetime import datetime, timedelta
 import requests
 from playwright.async_api import async_playwright
 
-from supabase_utils import get_rows, patch_row
+from supabase_utils import get_rows, patch_row, insert_rows
 from resend_utils import send_email
 from whatsapp_utils import send_whatsapp_alert
 
@@ -342,6 +342,35 @@ def write_availability_snapshot(results: dict[str, list[dict]], window_days: int
         print(f"[availability] failed to write availability.json: {e}")
 
 
+def write_availability_log(all_centres: list[str], results: dict[str, list[dict]]):
+    """Append one row per centre to the availability_log table in Supabase,
+    so the stats page can eventually answer "how likely is this centre to
+    have a slot" and "how often can you get in on short notice" from real
+    history. Uses every known centre (not just ones with results this run)
+    so a centre with zero availability still gets an honest "checked, none
+    found" row rather than silently having no data at all."""
+    try:
+        now_iso = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        today = datetime.now().date()
+        rows = []
+        for centre in all_centres:
+            slots = results.get(centre) or []
+            has_availability = bool(slots)
+            soonest_days = None
+            if has_availability:
+                soonest_days = max(0, min((s["parsed"].date() - today).days for s in slots))
+            rows.append({
+                "checked_at": now_iso,
+                "centre": centre,
+                "has_availability": has_availability,
+                "soonest_days": soonest_days,
+            })
+        insert_rows("availability_log", rows)
+        print(f"[stats] logged {len(rows)} centre row(s) to availability_log")
+    except Exception as e:
+        print(f"[stats] failed to write availability_log: {e}")
+
+
 def maybe_update_centres_file(all_centres: list[str]):
     try:
         existing = []
@@ -403,6 +432,7 @@ async def main():
 
     notify_subscribers(results, subscribers)
     write_availability_snapshot(results, max_days)
+    write_availability_log(all_centres, results)
     write_last_checked()
 
 

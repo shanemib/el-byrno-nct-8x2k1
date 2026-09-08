@@ -49,6 +49,19 @@ def get_rows(table: str, params: dict) -> list[dict]:
     return resp.json()
 
 
+def insert_rows(table: str, rows: list[dict]) -> None:
+    """Bulk-insert rows (a list of dicts, one per row)."""
+    if not configured() or not rows:
+        return
+    resp = requests.post(
+        f"{SUPABASE_URL}/rest/v1/{table}",
+        headers=_headers({"Prefer": "return=minimal"}),
+        json=rows,
+        timeout=20,
+    )
+    resp.raise_for_status()
+
+
 def patch_row(table: str, match_column: str, match_value: str, fields: dict) -> None:
     """PATCH the row(s) where match_column = match_value."""
     if not configured():

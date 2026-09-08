@@ -256,3 +256,79 @@ $$;
 
 revoke all on function get_subscriber_count() from public;
 grant execute on function get_subscriber_count() to anon;
+
+-- ---------------------------------------------------------------------------
+-- availability_log: one row per centre, per hourly check — "did this centre
+-- have anything available, and if so, how soon". Powers the stats page.
+-- No RLS policies granting anon access, same as subscribers — the public
+-- site only ever reads it through the aggregate get_stats() function below,
+-- never the raw rows. Written by the checker using the service role key.
+--
+-- Rough size: ~50 centres x 24 checks/day ~= 1,200 rows/day, well under 1MB
+-- a year even before considering pruning — not something to worry about
+-- for a long while.
+-- ---------------------------------------------------------------------------
+create table if not exists availability_log (
+  id bigint generated always as identity primary key,
+  checked_at timestamptz not null default now(),
+  centre text not null,
+  has_availability boolean not null,
+  soonest_days int
+);
+
+create index if not exists availability_log_checked_at_idx on availability_log (checked_at);
+create index if not exists availability_log_centre_idx on availability_log (centre);
+
+alter table availability_log enable row level security;
+-- Intentionally no policies here — see design notes above.
+
+-- ---------------------------------------------------------------------------
+-- get_stats: aggregates availability_log into what the stats page needs —
+-- per-centre "how often is it actually free" and a headline "how often
+-- could you get in within a week" figure — in one call. Returns json
+-- rather than a table since the shape (a scalar plus a nested per-centre
+-- list) doesn't map cleanly to a flat row set.
+-- ---------------------------------------------------------------------------
+create or replace function get_stats(p_lookback_days int default 30)
+returns json
+language sql
+security definer
+set search_path = public
+as $$
+  with window_rows as (
+    select *
+    from availability_log
+    where checked_at >= now() - (p_lookback_days || ' days')::interval
+  ),
+  runs as (
+    select checked_at, bool_or(has_availability and soonest_days <= 7) as had_short_notice
+    from window_rows
+    group by checked_at
+  ),
+  per_centre as (
+    select
+      centre,
+      count(*) as checks,
+      count(*) filter (where has_availability) as checks_with_availability,
+      round(100.0 * count(*) filter (where has_availability) / count(*), 1) as availability_rate,
+      round(avg(soonest_days) filter (where has_availability), 1) as avg_soonest_days
+    from window_rows
+    group by centre
+  )
+  select json_build_object(
+    'lookback_days', p_lookback_days,
+    'total_runs', (select count(*) from runs),
+    'tracking_since', (select min(checked_at) from availability_log),
+    'short_notice_rate_7d', (
+      select round(100.0 * count(*) filter (where had_short_notice) / nullif(count(*), 0), 1)
+      from runs
+    ),
+    'centres', (
+      select coalesce(json_agg(row_to_json(per_centre) order by availability_rate desc nulls last), '[]'::json)
+      from per_centre
+    )
+  );
+$$;
+
+revoke all on function get_stats(int) from public;
+grant execute on function get_stats(int) to anon;
