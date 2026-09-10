@@ -116,9 +116,12 @@ begin
     raise exception 'WhatsApp number must be in international format, e.g. +353871234567';
   end if;
 
-  -- If this email already has an unconfirmed signup (e.g. they made a typo
-  -- and resubmitted), replace it rather than piling up duplicate rows.
-  delete from subscribers where email = lower(p_email) and verified = false;
+  -- If this email already has a signup — confirmed or not (e.g. they made a
+  -- typo and resubmitted, or a friend forgot they'd already signed up and
+  -- filled the form in again) — replace it rather than ending up with two
+  -- active rows for the same address, which would double up every
+  -- confirmation and availability email they get from here on.
+  delete from subscribers where email = lower(p_email);
 
   insert into subscribers (email, centres, days_ahead, whatsapp_number)
   values (lower(p_email), p_centres, p_days_ahead, p_whatsapp_number);

@@ -25,7 +25,6 @@ ENVIRONMENT VARIABLES (set as GitHub Actions secrets, see SETUP.md):
     RESEND_API_KEY             - Resend API key
     RESEND_FROM                - verified sender, e.g. "NCT Alerts <alerts@yourdomain.com>"
     SITE_BASE_URL              - e.g. https://yourusername.github.io/el-byrno-nct-8x2k1
-    NTFY_TOPIC                 - optional: your own personal ntfy.sh topic (legacy, see README)
     TWILIO_ACCOUNT_SID         - optional: needed for WhatsApp alerts to paid subscribers
     TWILIO_AUTH_TOKEN          - optional: see above
     TWILIO_WHATSAPP_FROM       - optional: e.g. "whatsapp:+14155238886"
@@ -63,7 +62,6 @@ _NCT_REG_SINGLE = os.environ.get("NCT_REG", "")
 NCT_REGS = [r.strip() for r in _NCT_REGS_RAW.split(",") if r.strip()] or (
     [_NCT_REG_SINGLE] if _NCT_REG_SINGLE else []
 )
-NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "")
 SITE_BASE_URL = os.environ.get("SITE_BASE_URL", "").rstrip("/")
 HEADLESS = os.environ.get("HEADLESS", "true").lower() != "false"
 
@@ -301,22 +299,6 @@ async def get_available_dates_and_times(page, centre_name, cutoff_date):
             break
 
     return dates_found
-
-
-NTFY_MAX_LINES = 10  # keep this a real push notification, not a wall of text
-
-
-def send_ntfy(lines: list[str]):
-    if not NTFY_TOPIC:
-        return
-    message = "\n".join(lines[:NTFY_MAX_LINES])
-    if len(lines) > NTFY_MAX_LINES:
-        message += f"\n...and {len(lines) - NTFY_MAX_LINES} more — check the website for the full list."
-    requests.post(
-        f"https://ntfy.sh/{NTFY_TOPIC}",
-        data=message.encode("utf-8"),
-        headers={"Title": "NCT slot available!", "Priority": "high"},
-    )
 
 
 def fetch_verified_subscribers() -> list[dict]:
@@ -558,7 +540,6 @@ async def main():
 
     if report_lines:
         print("Availability found:\n" + "\n".join(report_lines))
-        send_ntfy(report_lines)
     else:
         print("No availability within window across any centre.")
 

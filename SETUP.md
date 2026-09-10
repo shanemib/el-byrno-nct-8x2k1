@@ -104,7 +104,6 @@ In your GitHub repo, go to **Settings → Secrets and variables → Actions**.
 | Name | Value |
 |---|---|
 | `NCT_REG` | Your vehicle registration, e.g. `191D12345` (already set) |
-| `NTFY_TOPIC` | *(optional, keep if you still want your own personal push alert too)* |
 | `SUPABASE_URL` | Same Project URL as above |
 | `SUPABASE_SERVICE_ROLE_KEY` | The **service_role** key (not the anon key!) |
 | `GMAIL_USER` | Your full Gmail address, e.g. `you@gmail.com` |
@@ -302,15 +301,11 @@ with Revenue as self-employed once this becomes a real income source.
   those functions.
 - **`process_signups.py`** — runs every ~10 minutes, emails a confirmation
   link to anyone who just signed up.
-- **`nct_checker.py`** — runs every hour: reads the live centre list, checks
+- **`nct_checker.py`** — runs every 15 minutes: reads the live centre list, checks
   every centre for availability, matches results against every *confirmed*
   subscriber's chosen centres and time window, and emails anyone with a new
   match (plus WhatsApps `plan = 'paid'` subscribers via `whatsapp_utils.py`).
   Also updates `docs/centres.json` if the site's centre list changes.
-- **Your personal `NTFY_TOPIC`**, if you keep it set, still gets a push
-  notification summarizing all availability found each run — independent of
-  the subscriber system. You can also just sign yourself up on the website
-  instead and drop it.
 - **Ads (once configured)** — `docs/config.js`'s `ADSENSE_CLIENT_ID` /
   `ADSENSE_SLOT_ID` control whether `app.js` loads the AdSense script at
   all; blank means no ad code runs.

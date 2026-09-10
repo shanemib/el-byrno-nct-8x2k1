@@ -2,14 +2,24 @@ name: NCT Appointment Check
 
 on:
   schedule:
-    - cron: "7 * * * *"   # every hour, 7 minutes past — avoids the top-of-hour
-                          # congestion that makes GitHub delay/drop "0 * * * *" runs
+    - cron: "7,22,37,52 * * * *"   # every 15 minutes, offset from the exact
+                                   # quarter-hour marks — those are just as
+                                   # congested on GitHub's scheduler as the
+                                   # top of the hour was
   workflow_dispatch: {}    # lets you trigger it manually to test
 
 # Needed so this workflow can commit docs/centres.json back to the repo
 # whenever the live list of NCT centres changes.
 permissions:
   contents: write
+
+# At every-15-minutes, a slow run could still be going when the next one is
+# due to fire. Queue instead of running two at once — avoids two browser
+# sessions hammering ncts.ie together and two jobs racing on the git push
+# below.
+concurrency:
+  group: nct-check
+  cancel-in-progress: false
 
 jobs:
   check:
@@ -44,7 +54,6 @@ jobs:
         env:
           NCT_REG: ${{ secrets.NCT_REG }}
           NCT_REGS: ${{ secrets.NCT_REGS }}
-          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
@@ -79,18 +88,4 @@ jobs:
             git push
           else
             echo "centres.json, availability.json and last_checked.json unchanged"
-          fi
-
-      - name: Alert on failure
-        if: failure()
-        env:
-          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
-        run: |
-          if [ -n "$NTFY_TOPIC" ]; then
-            curl -s -X POST "https://ntfy.sh/$NTFY_TOPIC" \
-              -H "Title: NCT checker FAILED" \
-              -H "Priority: urgent" \
-              -d "The hourly NCT checker failed — availability alerts may have stopped. Check the log: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          else
-            echo "NTFY_TOPIC secret not set — skipping failure alert. Set it as a repo secret (Settings > Secrets and variables > Actions) to get notified when this breaks."
           fi
