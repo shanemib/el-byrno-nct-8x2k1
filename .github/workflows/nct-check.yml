@@ -8,10 +8,13 @@ on:
                                    # top of the hour was
   workflow_dispatch: {}    # lets you trigger it manually to test
 
-# Needed so this workflow can commit docs/centres.json back to the repo
-# whenever the live list of NCT centres changes.
+# contents:write - so this workflow can commit docs/centres.json back to
+# the repo whenever the live list of NCT centres changes.
+# actions:read - so the failure-streak check below can read this
+# workflow's own recent run history via the GitHub API.
 permissions:
   contents: write
+  actions: read
 
 # At every-15-minutes, a slow run could still be going when the next one is
 # due to fire. Queue instead of running two at once — avoids two browser
@@ -77,6 +80,18 @@ jobs:
             debug_failure.html
           if-no-files-found: ignore
           retention-days: 14
+
+      - name: Check failure streak and alert if needed
+        # Only runs when "Run checker" above failed. A single failed run
+        # doesn't email you — see check_failure_streak.py for the actual
+        # thresholds (currently: 3 in a row, or 30% of the last 10 runs).
+        if: failure()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WORKFLOW_FILE: nct-check.yml
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+        run: python check_failure_streak.py
 
       - name: Commit updated centre list, availability and last-checked time (if changed)
         run: |
