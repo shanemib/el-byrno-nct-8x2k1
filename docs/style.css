@@ -60,14 +60,24 @@ body {
   gap: 10px;
 }
 
-.brand {
+/* Now also the home link (top-left logo/brand) — .brand is an <a> on every
+   page, including index.html itself (clicking it there just reloads home,
+   which is harmless and keeps the behavior consistent everywhere). Pinning
+   color on :link/:visited stops the browser's default blue/purple link
+   colors from overriding the class once it's an anchor. */
+.brand,
+.brand:link,
+.brand:visited {
   font-weight: 700;
   font-size: 16px;
   color: var(--ink);
+  text-decoration: none;
   display: flex;
   align-items: center;
   gap: 8px;
 }
+
+.brand:hover { color: var(--green-dark); }
 
 .brand-mark {
   display: inline-flex;
