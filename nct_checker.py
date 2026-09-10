@@ -61,16 +61,36 @@ AVAILABILITY_JSON_PATH = os.path.join(os.path.dirname(__file__), "docs", "availa
 MIN_PUBLIC_SCAN_DAYS = 28
 
 
+async def dismiss_cookie_modal(page):
+    """Fresh browser profiles (e.g. GitHub Actions) show a GDPR cookie modal
+    that blocks everything underneath it. It's injected asynchronously by a
+    cookie-consent script, so it isn't always there the instant the page
+    finishes loading — checking once with `.count()` right after goto() can
+    race it: the modal shows up a moment later and then sits there
+    intercepting every click for the rest of the run (that's what caused a
+    real failure — a 30s timeout retrying a click on the registration box
+    while the modal silently blocked it underneath).
+
+    Instead, actually wait for it to appear (up to a few seconds) before
+    deciding whether there's anything to dismiss, and — if it does appear —
+    wait for it to actually finish closing rather than guessing with a fixed
+    pause. If it never shows up, that's fine too; we just move on."""
+    cookie_btn = page.locator("#bs-gdpr-cookies-modal-accept-btn")
+    try:
+        await cookie_btn.wait_for(state="visible", timeout=6000)
+    except Exception:
+        return  # modal never appeared this run — nothing to dismiss
+    await cookie_btn.click()
+    try:
+        await cookie_btn.wait_for(state="hidden", timeout=6000)
+    except Exception:
+        pass  # clicked it; if it's slow to animate away we still proceed
+
+
 async def run_flow(page):
     """Step 1-2: enter reg, confirm vehicle, accept terms. (selectors verified via playwright codegen)"""
     await page.goto(BASE_URL)
-
-    # Fresh browser profiles (e.g. GitHub Actions) show a GDPR cookie modal
-    # that blocks everything underneath it — dismiss it if present.
-    cookie_btn = page.locator("#bs-gdpr-cookies-modal-accept-btn")
-    if await cookie_btn.count():
-        await cookie_btn.click()
-        await page.wait_for_timeout(300)
+    await dismiss_cookie_modal(page)
 
     reg_box = page.get_by_role("textbox", name="Enter Registration")
     await reg_box.click()
