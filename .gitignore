@@ -1,3 +1,5 @@
 __pycache__/
 *.pyc
 .env
+debug_failure.png
+debug_failure.html

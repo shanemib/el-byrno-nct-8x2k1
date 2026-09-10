@@ -457,6 +457,30 @@ def maybe_update_centres_file(all_centres: list[str]):
         print(f"[centres] failed to update centres.json: {e}")
 
 
+DEBUG_SCREENSHOT_PATH = os.path.join(os.path.dirname(__file__), "debug_failure.png")
+DEBUG_HTML_PATH = os.path.join(os.path.dirname(__file__), "debug_failure.html")
+
+
+async def save_failure_debug(page):
+    """On any failure partway through the browser flow, save a screenshot
+    and the full page HTML so a run that fails identically every time (but
+    can't be reproduced by hand — e.g. because ncts.ie treats GitHub's
+    datacenter IPs differently than an ordinary browser) can actually be
+    diagnosed from the workflow's uploaded artifacts, instead of guessing
+    from a bare timeout message. Never lets a debug-capture problem mask
+    the real error."""
+    try:
+        await page.screenshot(path=DEBUG_SCREENSHOT_PATH, full_page=True)
+    except Exception as e:
+        print(f"[debug] failed to save failure screenshot: {e}")
+    try:
+        html = await page.content()
+        with open(DEBUG_HTML_PATH, "w", encoding="utf-8") as f:
+            f.write(html)
+    except Exception as e:
+        print(f"[debug] failed to save failure HTML: {e}")
+
+
 async def main():
     if not NCT_REGS:
         raise SystemExit(
@@ -479,22 +503,26 @@ async def main():
         browser = await p.chromium.launch(headless=HEADLESS)
         page = await browser.new_page()
 
-        await run_flow(page, reg)
-        await expand_all_centres(page)
+        try:
+            await run_flow(page, reg)
+            await expand_all_centres(page)
 
-        all_centres = await get_all_centre_names(page)
-        print(f"[centres] {len(all_centres)} centres found: {all_centres}")
-        maybe_update_centres_file(all_centres)
+            all_centres = await get_all_centre_names(page)
+            print(f"[centres] {len(all_centres)} centres found: {all_centres}")
+            maybe_update_centres_file(all_centres)
 
-        for centre in all_centres:
-            slots = await get_available_dates_and_times(page, centre, cutoff)
-            if slots:
-                results[centre] = slots
-                for s in slots:
-                    times_str = ", ".join(s["times"]) if s["times"] else "(times not read)"
-                    report_lines.append(f"{centre}: {s['date']} — {times_str}")
-
-        await browser.close()
+            for centre in all_centres:
+                slots = await get_available_dates_and_times(page, centre, cutoff)
+                if slots:
+                    results[centre] = slots
+                    for s in slots:
+                        times_str = ", ".join(s["times"]) if s["times"] else "(times not read)"
+                        report_lines.append(f"{centre}: {s['date']} — {times_str}")
+        except Exception:
+            await save_failure_debug(page)
+            raise
+        finally:
+            await browser.close()
 
     if report_lines:
         print("Availability found:\n" + "\n".join(report_lines))
