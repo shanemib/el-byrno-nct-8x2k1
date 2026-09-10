@@ -127,16 +127,48 @@ async def accept_voluntary_test_warning_if_present(page):
     await page.wait_for_load_state("networkidle")
 
 
-async def run_flow(page, reg: str):
-    """Step 1-2: enter reg, confirm vehicle, accept terms. (selectors verified via playwright codegen)"""
-    await page.goto(BASE_URL)
-    await dismiss_cookie_modal(page)
+# ncts.ie's own search sometimes silently fails: submitting the registration
+# just re-renders the plain homepage again — same blank search box, no error
+# message anywhere. Confirmed live (from an ordinary residential connection,
+# not just GitHub's): it happened 3 times in a row in one attempt, then
+# succeeded either immediately or after a retry in later attempts. The site's
+# own frontend appears to just accept this and let the visitor try again, so
+# rather than treating one bounce-back as fatal, detect it and resubmit —
+# each bounce lands on a freshly rendered homepage with new anti-forgery
+# tokens already baked in, so no separate reload is needed before retrying.
+MAX_SEARCH_ATTEMPTS = 6
 
+
+async def _search_vehicle_once(page, reg: str):
+    """One attempt at the reg search. Returns True if it got past the
+    homepage, False if it silently bounced back to it."""
     reg_box = page.get_by_role("textbox", name="Enter Registration")
     await reg_box.click()
     await reg_box.fill(reg)
     await page.get_by_role("button", name="Search Vehicle").click()
     await page.wait_for_load_state("networkidle")
+
+    # Still seeing the homepage's own search box means the search didn't
+    # actually go anywhere — the real booking flow has no such element.
+    bounced_back = await page.get_by_role("textbox", name="Enter Registration").count()
+    return not bounced_back
+
+
+async def run_flow(page, reg: str):
+    """Step 1-2: enter reg, confirm vehicle, accept terms. (selectors verified via playwright codegen)"""
+    await page.goto(BASE_URL)
+    await dismiss_cookie_modal(page)
+
+    for attempt in range(1, MAX_SEARCH_ATTEMPTS + 1):
+        if await _search_vehicle_once(page, reg):
+            break
+        print(f"[search] attempt {attempt}/{MAX_SEARCH_ATTEMPTS} bounced back to the homepage — retrying...")
+        if attempt == MAX_SEARCH_ATTEMPTS:
+            raise RuntimeError(
+                f"Vehicle search kept bouncing back to the homepage after "
+                f"{MAX_SEARCH_ATTEMPTS} attempts — ncts.ie never actually let "
+                "the search through this run."
+            )
 
     await accept_voluntary_test_warning_if_present(page)
 
