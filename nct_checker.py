@@ -140,8 +140,15 @@ async def run_flow(page, reg: str):
 
     await accept_voluntary_test_warning_if_present(page)
 
-    await page.get_by_role("checkbox", name="I agree to the Terms and").check()
-    await page.get_by_role("checkbox", name="I confirm that I have read").check()
+    # ncts.ie now wraps "Terms and conditions" / "Privacy Policy." in their
+    # own nested links inside each checkbox's label, which excludes that
+    # linked text from the checkbox's accessible name — e.g. the first one
+    # is now just "I agree to the", not "I agree to the Terms and
+    # conditions". Match short, stable prefixes so small future wording
+    # tweaks (or the link boundary shifting again) don't break this the
+    # same way.
+    await page.get_by_role("checkbox", name="I agree").check()
+    await page.get_by_role("checkbox", name="I confirm").check()
     await page.get_by_role("button", name="Continue").click()
     await page.wait_for_load_state("networkidle")
 
