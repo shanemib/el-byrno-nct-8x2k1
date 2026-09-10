@@ -370,6 +370,7 @@ def notify_subscribers(results: dict, subscribers: list[dict]):
                 subject="New NCT appointment availability",
                 html=html,
                 text=text,
+                unsubscribe_url=unsubscribe_link,
             )
             print(f"[notify] {sub['email']}: {len(matches)} new match(es), emailed={sent_ok}")
 

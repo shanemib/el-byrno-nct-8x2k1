@@ -2,7 +2,22 @@ name: Process New Signups
 
 on:
   schedule:
-    - cron: "*/10 * * * *"   # roughly every 10 minutes (GitHub may delay this a bit)
+    # Every 10 minutes, offset from the round 10-minute marks (:00, :10, :20…)
+    # for the same reason nct-check.yml's schedule is offset — GitHub's own
+    # scheduled-workflow queue gets more congested at round-number marks,
+    # since huge numbers of repos across all of GitHub schedule jobs there.
+    # That said: this offset alone does NOT fix the real problem. Checking
+    # this workflow's actual run history shows GitHub's native schedule
+    # trigger has been firing every 2-5 hours in practice, not every 10
+    # minutes — the same well-documented GitHub Actions limitation already
+    # found and worked around for nct-check.yml via an external cron-job.org
+    # ping hitting workflow_dispatch. This workflow never got that same
+    # backup ping — see SETUP.md "Fixing unreliable hourly runs" for the
+    # steps, and set one up for THIS workflow too (its own separate
+    # cron-job.org job, same pattern, just pointed at
+    # process-signups.yml/dispatches instead of nct-check.yml/dispatches).
+    # Until that's done, don't expect confirmation emails within 10 minutes.
+    - cron: "4,14,24,34,44,54 * * * *"
   workflow_dispatch: {}
 
 jobs:

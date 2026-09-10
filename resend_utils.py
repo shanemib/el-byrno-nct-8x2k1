@@ -39,11 +39,28 @@ RESEND_FROM = os.environ.get("RESEND_FROM", "")
 RESEND_API_URL = "https://api.resend.com/emails"
 
 
-def _send_via_gmail(to: str, subject: str, html: str, text: str | None = None) -> bool:
+def _send_via_gmail(to: str, subject: str, html: str, text: str | None = None, unsubscribe_url: str | None = None) -> bool:
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
-    msg["From"] = GMAIL_USER
+    # A friendly display name (rather than a bare address) is a small but
+    # real signal to spam filters that this is an identifiable sender rather
+    # than an anonymous script, and it's just nicer to see in an inbox or
+    # spam folder than a raw gmail.com address.
+    msg["From"] = f"NCT Appointment Alerts <{GMAIL_USER}>"
     msg["To"] = to
+    if unsubscribe_url:
+        # A List-Unsubscribe header is one of the stronger positive signals
+        # mailbox providers (Gmail, Outlook) look for from a bulk-ish
+        # sender — its absence is a real part of why a brand-new sending
+        # account's mail tends to land in spam at first. Deliberately the
+        # link-only form, not the one-click POST variant (RFC 8058): that
+        # needs a real server able to receive a plain POST and act on it
+        # immediately with no further confirmation, which a static site +
+        # Supabase RPC (needing its own API key header) can't do safely —
+        # this way a client's "Unsubscribe" button just opens the same
+        # confirm-before-you-unsubscribe page a person clicking the link
+        # in the email body would get anyway.
+        msg["List-Unsubscribe"] = f"<{unsubscribe_url}>"
     if text:
         msg.attach(MIMEText(text, "plain"))
     msg.attach(MIMEText(html, "html"))
@@ -58,7 +75,7 @@ def _send_via_gmail(to: str, subject: str, html: str, text: str | None = None) -
         return False
 
 
-def _send_via_resend(to: str, subject: str, html: str, text: str | None = None) -> bool:
+def _send_via_resend(to: str, subject: str, html: str, text: str | None = None, unsubscribe_url: str | None = None) -> bool:
     payload = {
         "from": RESEND_FROM,
         "to": [to],
@@ -67,6 +84,8 @@ def _send_via_resend(to: str, subject: str, html: str, text: str | None = None) 
     }
     if text:
         payload["text"] = text
+    if unsubscribe_url:
+        payload["headers"] = {"List-Unsubscribe": f"<{unsubscribe_url}>"}
 
     try:
         resp = requests.post(
@@ -84,14 +103,16 @@ def _send_via_resend(to: str, subject: str, html: str, text: str | None = None) 
         return False
 
 
-def send_email(to: str, subject: str, html: str, text: str | None = None) -> bool:
+def send_email(to: str, subject: str, html: str, text: str | None = None, unsubscribe_url: str | None = None) -> bool:
     """Send one email via whichever provider is configured (Gmail preferred,
     then Resend). Returns True on success, False on failure (never raises —
-    a single bad email address shouldn't crash a batch job)."""
+    a single bad email address shouldn't crash a batch job). Pass
+    unsubscribe_url to add a List-Unsubscribe header — every caller has one
+    on hand (the token is generated at signup), so there's no reason not to."""
     if GMAIL_USER and GMAIL_APP_PASSWORD:
-        return _send_via_gmail(to, subject, html, text)
+        return _send_via_gmail(to, subject, html, text, unsubscribe_url)
     if RESEND_API_KEY and RESEND_FROM:
-        return _send_via_resend(to, subject, html, text)
+        return _send_via_resend(to, subject, html, text, unsubscribe_url)
     print(
         f"[email] neither GMAIL_USER/GMAIL_APP_PASSWORD nor RESEND_API_KEY/RESEND_FROM "
         f"is set — would have emailed {to}: {subject}"

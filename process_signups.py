@@ -55,12 +55,14 @@ def main():
     for row in pending:
         verify_link = f"{SITE_BASE_URL}/verify.html?token={row['verify_token']}"
         manage_link = f"{SITE_BASE_URL}/manage.html?token={row['unsubscribe_token']}"
+        unsubscribe_link = f"{SITE_BASE_URL}/unsubscribe.html?token={row['unsubscribe_token']}"
         html, text = build_verification_email(verify_link, manage_link)
         sent = send_email(
             to=row["email"],
             subject="Confirm your NCT appointment alert",
             html=html,
             text=text,
+            unsubscribe_url=unsubscribe_link,
         )
         if sent:
             patch_row("subscribers", "id", row["id"], {"verification_sent": True})
