@@ -11,9 +11,15 @@ message too, for subscribers on the paid plan with a WhatsApp number on file.
 The probe registration is only used to get into the booking flow — availability
 itself isn't tied to whose car it is, so one shared registration (yours) is
 enough to check appointments on behalf of every subscriber on the website.
+Optionally rotate between a few real registrations you have legitimate
+access to (see NCT_REGS below) rather than always using the exact same one.
 
 ENVIRONMENT VARIABLES (set as GitHub Actions secrets, see SETUP.md):
     NCT_REG                    - vehicle registration used to open the booking flow, e.g. "191D12345"
+    NCT_REGS                   - optional: comma-separated list of registrations to rotate between
+                                  instead of always using NCT_REG, e.g. "191D12345,192D67890". Each
+                                  one must be a real, currently-registered vehicle — ncts.ie validates
+                                  against real vehicles, so an invented reg just fails the lookup.
     SUPABASE_URL               - e.g. https://xxxx.supabase.co
     SUPABASE_SERVICE_ROLE_KEY  - Supabase service_role secret key
     RESEND_API_KEY             - Resend API key
@@ -32,6 +38,7 @@ Run locally first with HEADLESS=false to verify selectors still work:
 import os
 import re
 import json
+import random
 import asyncio
 from datetime import datetime, timedelta
 
@@ -42,7 +49,20 @@ from supabase_utils import get_rows, patch_row, insert_rows
 from resend_utils import send_email
 from whatsapp_utils import send_whatsapp_alert
 
-REG = os.environ.get("NCT_REG", "")
+# Which vehicle registration(s) to use to open the booking flow. Availability
+# itself isn't tied to whose car it is (it's a property of the centre/date,
+# not the vehicle), so this is just a way in — but hammering ncts.ie with the
+# exact same registration every hour, forever, is a more obvious automated
+# pattern than mixing it up a bit. Set NCT_REGS as a comma-separated list of
+# real, currently-registered vehicles (a random guess won't work — ncts.ie
+# validates against real vehicles and just says "No information for this
+# Vehicle has been Found") to rotate between them, one at random per run.
+# NCT_REG (singular) still works as a fallback for just one.
+_NCT_REGS_RAW = os.environ.get("NCT_REGS", "")
+_NCT_REG_SINGLE = os.environ.get("NCT_REG", "")
+NCT_REGS = [r.strip() for r in _NCT_REGS_RAW.split(",") if r.strip()] or (
+    [_NCT_REG_SINGLE] if _NCT_REG_SINGLE else []
+)
 NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "")
 SITE_BASE_URL = os.environ.get("SITE_BASE_URL", "").rstrip("/")
 HEADLESS = os.environ.get("HEADLESS", "true").lower() != "false"
@@ -87,16 +107,38 @@ async def dismiss_cookie_modal(page):
         pass  # clicked it; if it's slow to animate away we still proceed
 
 
-async def run_flow(page):
+async def accept_voluntary_test_warning_if_present(page):
+    """ncts.ie now shows an extra 'Voluntary Test Warning' interstitial for
+    a vehicle that isn't due for its next NCT yet (ours currently isn't —
+    due date 31/01/2027) — this didn't exist when this scraper was first
+    written. Without handling it, the real terms-and-conditions checkbox
+    never appears at all (it's on the *next* page), so the whole run just
+    times out waiting for it. Accept the warning and continue past it if
+    it shows up; if a given vehicle doesn't hit this branch, do nothing."""
+    warning_checkbox = page.get_by_role(
+        "checkbox", name="To continue you must accept the Voluntary Test conditions."
+    )
+    try:
+        await warning_checkbox.wait_for(state="visible", timeout=5000)
+    except Exception:
+        return  # this vehicle is already due — no warning screen to handle
+    await warning_checkbox.check()
+    await page.get_by_role("button", name="Continue").click()
+    await page.wait_for_load_state("networkidle")
+
+
+async def run_flow(page, reg: str):
     """Step 1-2: enter reg, confirm vehicle, accept terms. (selectors verified via playwright codegen)"""
     await page.goto(BASE_URL)
     await dismiss_cookie_modal(page)
 
     reg_box = page.get_by_role("textbox", name="Enter Registration")
     await reg_box.click()
-    await reg_box.fill(REG)
+    await reg_box.fill(reg)
     await page.get_by_role("button", name="Search Vehicle").click()
     await page.wait_for_load_state("networkidle")
+
+    await accept_voluntary_test_warning_if_present(page)
 
     await page.get_by_role("checkbox", name="I agree to the Terms and").check()
     await page.get_by_role("checkbox", name="I confirm that I have read").check()
@@ -409,11 +451,14 @@ def maybe_update_centres_file(all_centres: list[str]):
 
 
 async def main():
-    if not REG:
+    if not NCT_REGS:
         raise SystemExit(
-            "NCT_REG is not set — add it as a GitHub Actions secret "
-            "(your vehicle registration, e.g. 191D12345)."
+            "Neither NCT_REGS nor NCT_REG is set — add at least one as a "
+            "GitHub Actions secret (a real vehicle registration, e.g. "
+            "191D12345; NCT_REGS accepts a comma-separated list to rotate "
+            "between several)."
         )
+    reg = random.choice(NCT_REGS)
 
     subscribers = fetch_verified_subscribers()
     days_needed = [s.get("days_ahead") or DEFAULT_DAYS_AHEAD for s in subscribers]
@@ -427,7 +472,7 @@ async def main():
         browser = await p.chromium.launch(headless=HEADLESS)
         page = await browser.new_page()
 
-        await run_flow(page)
+        await run_flow(page, reg)
         await expand_all_centres(page)
 
         all_centres = await get_all_centre_names(page)
