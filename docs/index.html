@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Free NCT appointment alerts for Ireland. Pick your test centres and time window — we check every NCT centre hourly and email you the moment a slot opens up." />
+  <meta name="description" content="Free NCT appointment alerts for Ireland. Pick your test centres and time window — we check every NCT centre every 15 minutes and email you the moment a slot opens up." />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%230b6e4f'/%3E%3Cpath d='M30 52l14 14 26-30' stroke='white' stroke-width='9' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
   <link rel="manifest" href="./manifest.json" />
   <meta name="theme-color" content="#0b6e4f" />
@@ -13,7 +13,7 @@
        if/when this moves to a custom domain (see SETUP.md Phase 2). -->
   <meta property="og:type" content="website" />
   <meta property="og:title" content="NCT Appointment Alerts" />
-  <meta property="og:description" content="Stop refreshing ncts.ie. Pick your test centres and time window — we check every NCT centre hourly and email you the moment a slot opens up." />
+  <meta property="og:description" content="Stop refreshing ncts.ie. Pick your test centres and time window — we check every NCT centre every 15 minutes and email you the moment a slot opens up." />
   <meta property="og:url" content="https://shanemib.github.io/el-byrno-nct-8x2k1/" />
   <meta property="og:image" content="https://shanemib.github.io/el-byrno-nct-8x2k1/og-image.png" />
   <meta name="twitter:card" content="summary_large_image" />
@@ -47,7 +47,7 @@
         "name": "How often does it check?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Every hour, automatically. You don't need to keep a tab open or do anything after you confirm your email."
+          "text": "Every 15 minutes, automatically. You don't need to keep a tab open or do anything after you confirm your email."
         }
       },
       {
@@ -63,6 +63,7 @@
   </script>
 </head>
 <body>
+  <a class="skip-link" href="#main">Skip to content</a>
   <div class="wrap">
     <div class="brand-bar">
       <div class="brand"><span class="brand-mark">🔔</span> NCT Appointment Alerts</div>
@@ -74,9 +75,10 @@
       </nav>
     </div>
 
+    <main id="main">
     <section class="hero">
       <div class="hero-copy">
-        <p class="eyebrow" id="liveStatus">🟢 Live — scanning every NCT centre, hourly</p>
+        <p class="eyebrow" id="liveStatus">🟢 Live — scanning every NCT centre, every 15 minutes</p>
         <h1>Stop refreshing <span class="hl">ncts.ie</span>. Let it watch for you.</h1>
         <p class="lede">
           Pick the test centres that work for you and how soon you need a
@@ -89,7 +91,7 @@
         <ol class="steps">
           <li><span class="step-num">1</span><div><strong>Choose your centres &amp; window</strong><br />Any number of centres, from 3 days out to 12 weeks.</div></li>
           <li><span class="step-num">2</span><div><strong>Confirm your email</strong><br />One click on the link we send you — takes a few minutes.</div></li>
-          <li><span class="step-num">3</span><div><strong>Get alerted the moment a slot opens</strong><br />Checked hourly, straight from the real booking calendar.</div></li>
+          <li><span class="step-num">3</span><div><strong>Get alerted the moment a slot opens</strong><br />Checked every 15 minutes, straight from the real booking calendar.</div></li>
         </ol>
 
         <p class="disclaimer">
@@ -156,7 +158,7 @@
 
           <button type="submit">Sign up for alerts</button>
           <p class="privacy-note">🔒 Used only to send your alerts. No spam, unsubscribe any time.</p>
-          <div class="status" id="status"></div>
+          <div class="status" id="status" role="status" aria-live="polite" aria-atomic="true"></div>
         </form>
       </div>
     </section>
@@ -169,7 +171,7 @@
         <div class="feature">
           <div class="feature-icon">🔎</div>
           <h3>Checks the real calendar</h3>
-          <p>Every hour, it walks the same booking flow you would on ncts.ie and reads live availability at every test centre in the country — not a cached guess.</p>
+          <p>Every 15 minutes, it walks the same booking flow you would on ncts.ie and reads live availability at every test centre in the country — not a cached guess.</p>
         </div>
         <div class="feature">
           <div class="feature-icon">🎯</div>
@@ -197,7 +199,7 @@
         </div>
         <div class="faq-item">
           <p class="faq-q">How often does it check?</p>
-          <p>Every hour, automatically. You don't need to keep a tab open or do anything after you confirm your email.</p>
+          <p>Every 15 minutes, automatically. You don't need to keep a tab open or do anything after you confirm your email.</p>
         </div>
         <div class="faq-item">
           <p class="faq-q">Will I get spammed with emails?</p>
@@ -205,9 +207,10 @@
         </div>
       </div>
     </section>
+    </main>
 
     <footer>
-      Checked automatically, hourly, straight from <a href="https://www.ncts.ie/">ncts.ie</a>.
+      Checked automatically, every 15 minutes, straight from <a href="https://www.ncts.ie/">ncts.ie</a>.
       Unsubscribe any time from the link in your alert emails. · <a href="./privacy.html">Privacy</a>
     </footer>
   </div>

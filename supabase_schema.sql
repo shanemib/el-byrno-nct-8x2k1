@@ -267,9 +267,9 @@ grant execute on function get_subscriber_count() to anon;
 -- site only ever reads it through the aggregate get_stats() function below,
 -- never the raw rows. Written by the checker using the service role key.
 --
--- Rough size: ~50 centres x 24 checks/day ~= 1,200 rows/day, well under 1MB
--- a year even before considering pruning — not something to worry about
--- for a long while.
+-- Rough size: ~50 centres x 96 checks/day (checker now runs every 15
+-- minutes, not hourly) ~= 4,800 rows/day, still comfortably under Supabase's
+-- free-tier database limit for years even before considering pruning.
 -- ---------------------------------------------------------------------------
 create table if not exists availability_log (
   id bigint generated always as identity primary key,

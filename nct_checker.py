@@ -39,7 +39,7 @@ import re
 import json
 import random
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import requests
 from playwright.async_api import async_playwright
@@ -349,34 +349,54 @@ def notify_subscribers(results: dict, subscribers: list[dict]):
                 if slot["parsed"] > sub_cutoff:
                     continue
                 key = f"{centre}|{slot['parsed'].date().isoformat()}"
-                fresh_notified[key] = notified.get(key) or now.isoformat()
                 if key in notified:
-                    continue  # already emailed about this centre+date before
-                matches.append({"centre": centre, "date": slot["date"], "times": slot["times"]})
+                    # Still currently available and already told them about it —
+                    # carry the timestamp forward so it isn't treated as new
+                    # again. If it later disappears from results (booked, or
+                    # the slot's date passes), it simply won't be carried
+                    # forward, which is what lets a genuine re-opening of the
+                    # exact same centre+date notify them again later.
+                    fresh_notified[key] = notified[key]
+                    continue
+                matches.append({"centre": centre, "date": slot["date"], "times": slot["times"], "_key": key})
+
+        sent_ok = True
+        if matches:
+            unsubscribe_link = f"{SITE_BASE_URL}/unsubscribe.html?token={sub['unsubscribe_token']}"
+            manage_link = f"{SITE_BASE_URL}/manage.html?token={sub['unsubscribe_token']}"
+            html, text = build_email_body(matches, unsubscribe_link, manage_link)
+            sent_ok = send_email(
+                to=sub["email"],
+                subject="New NCT appointment availability",
+                html=html,
+                text=text,
+            )
+            print(f"[notify] {sub['email']}: {len(matches)} new match(es), emailed={sent_ok}")
+
+            if sent_ok:
+                # Only mark these as "already told them" once the email has
+                # actually gone out — a Gmail/Resend hiccup here used to still
+                # write the key to `notified`, so a subscriber could silently
+                # never hear about the exact appointment they signed up for.
+                # Leaving it out of fresh_notified means it's treated as a
+                # fresh match again next run and retried.
+                for m in matches:
+                    fresh_notified[m["_key"]] = now.isoformat()
+            else:
+                print(f"[notify] {sub['email']}: email failed — will retry these matches next run")
+
+            # Paid plan also gets an instant WhatsApp alert alongside the email
+            # (email stays as the authoritative record for dedupe either way —
+            # a failed WhatsApp send alone doesn't block marking as notified).
+            if sub.get("plan") == "paid" and sub.get("whatsapp_number"):
+                wa_sent = send_whatsapp_alert(sub["whatsapp_number"], matches)
+                print(f"[notify] {sub['email']}: whatsapp sent={wa_sent}")
 
         # Prune stale keys (dates that have now passed) so this field doesn't grow forever.
         pruned_notified = {
             k: v for k, v in fresh_notified.items()
             if datetime.fromisoformat(k.split("|")[1]) >= now - timedelta(days=1)
         }
-
-        if matches:
-            unsubscribe_link = f"{SITE_BASE_URL}/unsubscribe.html?token={sub['unsubscribe_token']}"
-            manage_link = f"{SITE_BASE_URL}/manage.html?token={sub['unsubscribe_token']}"
-            html, text = build_email_body(matches, unsubscribe_link, manage_link)
-            sent = send_email(
-                to=sub["email"],
-                subject="New NCT appointment availability",
-                html=html,
-                text=text,
-            )
-            print(f"[notify] {sub['email']}: {len(matches)} new match(es), emailed={sent}")
-
-            # Paid plan also gets an instant WhatsApp alert alongside the email
-            # (email stays as a reliable backup/record either way).
-            if sub.get("plan") == "paid" and sub.get("whatsapp_number"):
-                wa_sent = send_whatsapp_alert(sub["whatsapp_number"], matches)
-                print(f"[notify] {sub['email']}: whatsapp sent={wa_sent}")
 
         if pruned_notified != notified:
             try:
@@ -394,7 +414,7 @@ def write_last_checked():
     try:
         os.makedirs(os.path.dirname(LAST_CHECKED_JSON_PATH), exist_ok=True)
         with open(LAST_CHECKED_JSON_PATH, "w") as f:
-            json.dump({"timestamp": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")}, f)
+            json.dump({"timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")}, f)
     except Exception as e:
         print(f"[last_checked] failed to write last_checked.json: {e}")
 
@@ -433,7 +453,7 @@ def write_availability_log(all_centres: list[str], results: dict[str, list[dict]
     so a centre with zero availability still gets an honest "checked, none
     found" row rather than silently having no data at all."""
     try:
-        now_iso = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         today = datetime.now().date()
         rows = []
         for centre in all_centres:
@@ -526,7 +546,19 @@ async def main():
             maybe_update_centres_file(all_centres)
 
             for centre in all_centres:
-                slots = await get_available_dates_and_times(page, centre, cutoff)
+                # A single centre hitting an unexpected page state (a timeout,
+                # a layout the site briefly shows mid-deploy, etc.) used to
+                # blow up the whole run via the try/except below — losing the
+                # results already gathered for every centre checked before it,
+                # and skipping notifications, availability.json, and
+                # last_checked.json entirely for that run. Scanning ~50
+                # centres per run, that turned an isolated flake into a
+                # full outage every time. Catch it here instead and move on.
+                try:
+                    slots = await get_available_dates_and_times(page, centre, cutoff)
+                except Exception as e:
+                    print(f"[{centre}] skipped after an unexpected error: {e}")
+                    continue
                 if slots:
                     results[centre] = slots
                     for s in slots:

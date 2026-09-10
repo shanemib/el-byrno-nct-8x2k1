@@ -1,3 +1,14 @@
+// Single source of truth for how often the checker runs, so this only ever
+// needs updating in one place. It used to say "hourly" in about a dozen
+// spots across this file and the HTML pages — accurate when it was written,
+// silently wrong (and a little embarrassing) after the schedule moved to
+// every 15 minutes, since nothing here reminded anyone to go find every copy
+// of the word "hourly" and update it. Static text baked into meta tags,
+// JSON-LD, and og:description can't reference this (crawlers read the raw
+// HTML) and was hand-edited instead — see index.html/availability.html/
+// stats.html — so if the schedule changes again, update those too.
+const CHECK_INTERVAL_LABEL = "every 15 minutes";
+
 // Best-effort centre → county mapping, used only to make the centre picker
 // easier to scan/search. Purely cosmetic — never sent to the backend.
 const CENTRE_COUNTIES = {
@@ -133,7 +144,14 @@ async function callRpc(fnName, args) {
 function showStatus(el, message, kind) {
   el.textContent = message;
   el.className = `status show ${kind}`;
+  // role="alert"/"status" are themselves ARIA live-region roles, but some
+  // screen readers only pick up content changes in a region that already
+  // existed (with a live-region role) at the time the change happens, not
+  // one where the role itself is what's new. The element carries a baseline
+  // aria-live="polite" from the markup for that reason; this just upgrades
+  // it to "assertive" for errors, which matters more than the exact wording.
   el.setAttribute("role", kind === "error" ? "alert" : "status");
+  el.setAttribute("aria-live", kind === "error" ? "assertive" : "polite");
 }
 
 let centreCount = null;
@@ -156,7 +174,7 @@ function renderLiveStatus() {
   const ago = lastCheckedIso ? timeAgo(lastCheckedIso) : null;
   el.textContent = ago
     ? `🟢 Live — ${centreCount} NCT centres, last checked ${ago}`
-    : `🟢 Live — scanning all ${centreCount} NCT centres, hourly`;
+    : `🟢 Live — scanning all ${centreCount} NCT centres, ${CHECK_INTERVAL_LABEL}`;
 }
 
 async function loadLastChecked() {
@@ -169,7 +187,7 @@ async function loadLastChecked() {
       renderLiveStatus();
     }
   } catch (e) {
-    // Fine to stay quiet — the static "hourly" wording is a fair fallback.
+    // Fine to stay quiet — the static CHECK_INTERVAL_LABEL wording is a fair fallback.
   }
 }
 
@@ -376,7 +394,7 @@ function renderUrgentSection(data) {
 
   if (matches.length === 0) {
     urgentList.innerHTML =
-      '<p class="urgent-empty">Nothing that short-notice right now — check back after the next hourly check, or sign up below to get emailed the moment something opens.</p>';
+      `<p class="urgent-empty">Nothing that short-notice right now — check back after the next automatic check (${CHECK_INTERVAL_LABEL}), or sign up below to get emailed the moment something opens.</p>`;
     return;
   }
 
@@ -439,7 +457,7 @@ async function initAvailabilityPage() {
 
     if (centresWithSlots.length === 0) {
       listEl.innerHTML =
-        '<p class="hint">No appointments currently available at any centre we track. Check back after the next hourly run, or sign up below to get emailed automatically.</p>';
+        `<p class="hint">No appointments currently available at any centre we track. Check back after the next automatic check (${CHECK_INTERVAL_LABEL}), or sign up below to get emailed automatically.</p>`;
     } else {
       listEl.innerHTML = "";
       for (const centre of centresWithSlots) {
@@ -591,7 +609,7 @@ async function initManagePage() {
   });
 }
 
-const STATS_MIN_RUNS_FOR_CONFIDENCE = 20; // roughly a day of hourly runs
+const STATS_MIN_RUNS_FOR_CONFIDENCE = 96; // roughly a day of checks at a 15-minute interval
 
 function formatTrackingSince(iso) {
   if (!iso) return null;
@@ -621,7 +639,7 @@ async function initStatsPage() {
   if (!stats || totalRuns === 0 || centres.length === 0) {
     noteEl.hidden = false;
     noteEl.textContent =
-      "We only just started tracking history for these stats — check back in a few days once more hourly checks have run.";
+      "We only just started tracking history for these stats — check back in a few days once more checks have run.";
     summaryEl.innerHTML = "";
     tableWrap.innerHTML = "";
     return;
@@ -629,7 +647,7 @@ async function initStatsPage() {
 
   if (totalRuns < STATS_MIN_RUNS_FOR_CONFIDENCE) {
     noteEl.hidden = false;
-    noteEl.textContent = `Still early days — these numbers are based on only ${totalRuns} hourly check${totalRuns === 1 ? "" : "s"} so far and will get more reliable over time.`;
+    noteEl.textContent = `Still early days — these numbers are based on only ${totalRuns} check${totalRuns === 1 ? "" : "s"} so far and will get more reliable over time.`;
   } else {
     noteEl.hidden = true;
   }
@@ -641,9 +659,9 @@ async function initStatsPage() {
   const cards = [
     {
       value: shortNoticeRate == null ? "—" : `${shortNoticeRate}%`,
-      label: "of hourly checks found a short-notice (within 7 days) slot somewhere in the country",
+      label: "of checks found a short-notice (within 7 days) slot somewhere in the country",
     },
-    { value: String(totalRuns), label: "hourly checks in the last 30 days" },
+    { value: String(totalRuns), label: "checks in the last 30 days" },
     { value: String(centres.length), label: "centres tracked" },
   ];
   for (const c of cards) {
@@ -722,14 +740,31 @@ async function initUnsubscribePage() {
     resultEl.innerHTML = '<div class="icon">⚠️</div><p>Missing unsubscribe link. Please use the link from your email.</p>';
     return;
   }
-  try {
-    const ok = await callRpc("unsubscribe_subscriber", { p_token: token });
-    if (ok) {
-      resultEl.innerHTML = '<div class="icon">👋</div><p>You\'ve been unsubscribed — you won\'t receive any more alerts.</p>';
-    } else {
-      resultEl.innerHTML = '<div class="icon">⚠️</div><p>We couldn\'t find that subscription — it may already be removed.</p>';
+
+  // Deliberately does NOT unsubscribe just from this page loading. Some
+  // corporate email gateways and security scanners (Microsoft Safe Links,
+  // Mimecast, Proofpoint and similar) automatically open every link in an
+  // email before it reaches the inbox, to check it's safe — if unsubscribing
+  // happened on page load, that alone could silently unsubscribe someone who
+  // never clicked anything themselves. Requiring one extra click here means
+  // only an actual visitor triggers it.
+  const runUnsubscribe = async () => {
+    resultEl.innerHTML = '<div class="icon">⏳</div><p>Unsubscribing…</p>';
+    try {
+      const ok = await callRpc("unsubscribe_subscriber", { p_token: token });
+      if (ok) {
+        resultEl.innerHTML = '<div class="icon">👋</div><p>You\'ve been unsubscribed — you won\'t receive any more alerts.</p>';
+      } else {
+        resultEl.innerHTML = '<div class="icon">⚠️</div><p>We couldn\'t find that subscription — it may already be removed.</p>';
+      }
+    } catch (err) {
+      resultEl.innerHTML = `<div class="icon">⚠️</div><p>${err.message}</p>`;
     }
-  } catch (err) {
-    resultEl.innerHTML = `<div class="icon">⚠️</div><p>${err.message}</p>`;
-  }
+  };
+
+  resultEl.innerHTML =
+    '<div class="icon">👋</div>' +
+    "<p>Sure you want to stop getting NCT appointment alerts?</p>" +
+    '<button type="button" id="confirmUnsubBtn" style="width:auto;padding:10px 20px;">Yes, unsubscribe me</button>';
+  document.getElementById("confirmUnsubBtn").addEventListener("click", runUnsubscribe);
 }
