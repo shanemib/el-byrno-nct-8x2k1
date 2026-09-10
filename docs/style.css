@@ -208,7 +208,10 @@ select {
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  font-size: 15px;
+  /* 16px, not 15px: iOS Safari auto-zooms the whole page when a focused
+     field's font is under 16px, which is a jarring surprise on a form
+     that's mostly filled in on a phone. */
+  font-size: 16px;
   background: #fff;
   color: var(--text);
   font-family: inherit;
@@ -394,6 +397,17 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
 .avail-date { color: var(--ink); font-weight: 600; }
 .avail-times { color: var(--muted); text-align: right; }
 
+/* On a narrow phone a long comma-separated time list squeezed into ~50%
+   of the row width just wraps into ragged right-aligned lines, which is
+   hard to scan. Stack date above times, both left-aligned, instead. */
+@media (max-width: 480px) {
+  .avail-date-row {
+    flex-direction: column;
+    gap: 2px;
+  }
+  .avail-times { text-align: left; }
+}
+
 .no-avail-heading {
   font-size: 15px;
   color: var(--muted);
@@ -512,9 +526,26 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .stats-table-wrap {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 12px;
+}
+
+/* The table is wider than a phone screen (it has 4 columns of real data),
+   so on narrow viewports it scrolls sideways inside its border — but
+   nothing about a bordered box says "swipe me", so on desktop this hint
+   would just be noise next to a table that already fits. Shown only
+   below the width where the table actually needs to scroll. */
+.swipe-hint {
+  display: none;
+  color: var(--muted);
+  font-size: 12.5px;
+  margin: 0 0 8px;
+}
+
+@media (max-width: 760px) {
+  .swipe-hint { display: block; }
 }
 
 table.stats-table {
