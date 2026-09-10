@@ -35,16 +35,36 @@ there for as long as you like.
    - **anon public** key (safe to be public — put it in the website)
    - **service_role** key (⚠️ secret — only goes into GitHub Actions secrets, never the website)
 
-### 2. Create a Resend account (no domain needed yet)
+### 2. Set up email sending — Gmail (free, and actually reaches subscribers)
 
-1. Go to [resend.com](https://resend.com) and sign up (free tier: 3,000
-   emails/month, 100/day).
-2. Go to **API Keys** and create a key with "Sending" permission. Save it —
-   you won't be able to see it again.
-3. **Don't add a domain yet.** Without one, Resend will only let you send
-   from `onboarding@resend.dev` — and only *to the email address you signed
-   up to Resend with*. That's a real limitation (it's why Phase 2 exists),
-   but it's exactly enough to test the whole flow on yourself for free.
+You need something to send the verification and availability-alert emails.
+There are two options; use Gmail unless you already have a domain.
+
+**Option A — Gmail (recommended to start):** free, no domain needed, and
+unlike Resend's free tier it can actually deliver to *any* subscriber, not
+just yourself.
+
+1. Turn on **2-Step Verification** on the Google account you want to send
+   from, if it isn't already (Google Account → Security → 2-Step
+   Verification) — Gmail won't let you create an App Password without it.
+2. Go to [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords),
+   sign in again if asked, type a name like "NCT Alerts" and click **Create**.
+   Google shows you a 16-character password (four groups of four letters) —
+   copy it now, you won't be able to see it again.
+3. That's it — no separate "API key" step. You'll add this as
+   `GMAIL_APP_PASSWORD` in step 5 below, alongside `GMAIL_USER` (your full
+   Gmail address). A plain Gmail account can send roughly 500 emails/day for
+   free, which is far more than this project needs unless it gets very big.
+
+**Option B — Resend (skip for now unless you already own a domain):**
+Resend's free tier (3,000 emails/month, 100/day) works too, but *without a
+verified domain* it will only send from `onboarding@resend.dev` and only
+*to the email address you signed up to Resend with* — everyone else's
+emails silently never arrive. If you go this route anyway: sign up at
+[resend.com](https://resend.com), go to **API Keys**, create one with
+"Sending" permission, and save it. See step 10 (Phase 2) for verifying a
+domain so it can email real subscribers. If both Gmail and Resend secrets
+are set, Gmail is used and Resend is ignored.
 
 ### 3. Enable GitHub Pages (default URL is fine for now)
 
@@ -87,8 +107,10 @@ In your GitHub repo, go to **Settings → Secrets and variables → Actions**.
 | `NTFY_TOPIC` | *(optional, keep if you still want your own personal push alert too)* |
 | `SUPABASE_URL` | Same Project URL as above |
 | `SUPABASE_SERVICE_ROLE_KEY` | The **service_role** key (not the anon key!) |
-| `RESEND_API_KEY` | Your Resend API key |
-| `RESEND_FROM` | `NCT Alerts <onboarding@resend.dev>` — the free default sender |
+| `GMAIL_USER` | Your full Gmail address, e.g. `you@gmail.com` |
+| `GMAIL_APP_PASSWORD` | The 16-character App Password from step 2 |
+| `RESEND_API_KEY` | *(only if using Resend instead — see step 2, Option B)* |
+| `RESEND_FROM` | *(only if using Resend instead)* `NCT Alerts <onboarding@resend.dev>` |
 
 ### 6. First run: populate the centre list
 
@@ -108,9 +130,11 @@ with `HEADLESS=false` locally on your own machine to debug, same as before.
 
 ### 7. Test the whole flow — on yourself
 
-**Important:** sign up using the *exact same email address* you used to
-create your Resend account — remember, without a verified domain Resend
-will silently refuse to deliver to anyone else.
+If you're using Gmail (Option A above), sign up with any email address you
+can check — Gmail will actually deliver to it. If you went with Resend
+without a verified domain instead, you must sign up using the *exact same
+email address* you used to create your Resend account, since it will
+silently refuse to deliver to anyone else.
 
 1. Sign up on your website with that email.
 2. Within ~10 minutes, the **Process New Signups** workflow should email you
@@ -161,13 +185,17 @@ to open this up beyond yourself.
 ### 9. Buy a domain
 
 This is the one real recurring cost in the whole project (~€8–15/year from
-Namecheap, Cloudflare Registrar, or similar). You'll use it for two things:
-letting Resend send to arbitrary strangers' inboxes (not just your own),
-and as the site's own address instead of a raw `github.io` URL — worth it
-once this is public, since a real domain reads more trustworthy to visitors
-and matters for AdSense approval.
+Namecheap, Cloudflare Registrar, or similar). If you're already sending via
+Gmail, you don't strictly need a domain for email anymore — this step is
+now mainly about the site's own address instead of a raw `github.io` URL,
+which reads more trustworthy to visitors and matters for AdSense approval.
 
-### 10. Verify your domain with Resend
+### 10. (Optional) Verify a domain with Resend instead of Gmail
+
+Skip this if Gmail is working fine — a plain Gmail account's ~500/day limit
+covers a large number of subscribers already. Only bother with this if you'd
+rather send from your own branded address (e.g. `alerts@yourdomain.com`) or
+expect to outgrow Gmail's daily limit:
 
 1. In Resend, go to **Domains → Add Domain**, enter your domain, and add the
    DNS records it shows you at your registrar (usually 2–3 TXT/MX/CNAME
@@ -175,8 +203,10 @@ and matters for AdSense approval.
 2. Decide on a sender address at your domain, e.g. `alerts@yourdomain.com`
    (no inbox needed there — Resend just sends *from* it).
 3. Update the `RESEND_FROM` secret to use it, e.g.
-   `NCT Alerts <alerts@yourdomain.com>`. From this point on, Resend can
-   email anyone who signs up — not just you.
+   `NCT Alerts <alerts@yourdomain.com>`, and **remove the `GMAIL_USER` /
+   `GMAIL_APP_PASSWORD` secrets** (Gmail is preferred whenever both are set,
+   so Resend won't be used until you do). From this point on, Resend can
+   email anyone who signs up.
 
 ### 11. Point your custom domain at GitHub Pages
 
@@ -312,3 +342,77 @@ costs nothing until you have an actual paying WhatsApp user.
 
 Ads bring in revenue rather than cost, once approved; a future paid tier
 would add whatever cut your payment provider takes per transaction.
+
+## Fixing unreliable hourly runs
+
+GitHub's own `schedule:` trigger (the `cron: "..."` line in
+`.github/workflows/nct-check.yml`) is not reliable on shared/public
+runners — GitHub openly documents that scheduled runs can be delayed
+during busy periods, but in practice a large fraction of them get dropped
+entirely with no error anywhere, especially for an exact `0 * * * *`
+(top-of-the-hour) schedule. If the checker is only running every few hours
+instead of every hour, this is almost always why.
+
+The reliable fix is to stop depending on GitHub's `schedule` event and
+instead have an outside service call the workflow's `workflow_dispatch`
+API endpoint once an hour — that's a different trigger that fires
+immediately, not the deprioritized queue `schedule` events sit in.
+
+### 1. Create a GitHub personal access token
+
+This has to be done from your own GitHub account — it's a credential, so
+no one else can create it for you.
+
+1. Go to **github.com → your profile photo (top right) → Settings →
+   Developer settings → Personal access tokens → Fine-grained tokens**.
+2. Click **Generate new token**.
+3. **Token name**: something like `nct-check-dispatch`.
+4. **Expiration**: pick the longest option available (or set a calendar
+   reminder to regenerate it before it expires — a fine-grained token
+   maxes out at 1 year).
+5. **Repository access**: choose **Only select repositories** and pick
+   `el-byrno-nct-8x2k1`. Don't grant access to any other repo.
+6. **Permissions → Repository permissions**: find **Actions** and set it
+   to **Read and write**. Leave everything else as **No access**.
+7. Click **Generate token**, then **copy the token immediately** — GitHub
+   only shows it once. Paste it somewhere temporary (a text file you'll
+   delete after the next step) — never commit it into the repo.
+
+### 2. Set up the hourly ping
+
+Any scheduler that can make an HTTP request with custom headers on a
+schedule works. **cron-job.org** is free, reliable, and simple:
+
+1. Create a free account at cron-job.org.
+2. Create a new cronjob with these settings:
+   - **Title**: `NCT checker dispatch`
+   - **URL**:
+     `https://api.github.com/repos/shanemib/el-byrno-nct-8x2k1/actions/workflows/nct-check.yml/dispatches`
+   - **Schedule**: every hour (pick a specific minute, e.g. `:10`, rather
+     than the top of the hour)
+   - **Request method**: `POST`
+   - **Headers** (add each as a name/value pair):
+     - `Authorization` → `Bearer <paste your token here>`
+     - `Accept` → `application/vnd.github+json`
+     - `X-GitHub-Api-Version` → `2022-11-28`
+     - `Content-Type` → `application/json`
+   - **Body** (raw JSON): `{"ref": "main"}`
+3. Save, then use the service's "Run now" / "Test" button to fire it once
+   immediately. A **success is HTTP 204 No Content** with an empty body —
+   that's normal for this endpoint, not an error. Then check the repo's
+   **Actions** tab: a new "NCT Appointment Check" run should appear
+   within a few seconds, triggered by `workflow_dispatch` rather than
+   `schedule`.
+
+Leave the existing `cron:` schedule line in `nct-check.yml` in place as a
+harmless backup — if it happens to fire too, the checker runs twice in
+close succession, which costs a few extra Actions minutes but changes
+nothing else (it's idempotent either way).
+
+### Note on the token
+
+Treat that token like a password — anyone who has it could trigger this
+one workflow (nothing else, since it's scoped to just this repo and just
+Actions). If you ever need to revoke it, delete it from **Settings →
+Developer settings → Personal access tokens** and generate a new one to
+paste into cron-job.org.
