@@ -29,61 +29,12 @@
         ]
       }
     ],
-    "Arklow": [
-      {
-        "date": "Saturday 26th Sept",
-        "iso": "2026-09-26",
-        "times": [
-          "11:30"
-        ]
-      }
-    ],
     "Athlone": [
       {
         "date": "Monday 14th Sept",
         "iso": "2026-09-14",
         "times": [
           "15:50"
-        ]
-      },
-      {
-        "date": "Tuesday 15th Sept",
-        "iso": "2026-09-15",
-        "times": [
-          "07:10"
-        ]
-      },
-      {
-        "date": "Wednesday 16th Sept",
-        "iso": "2026-09-16",
-        "times": [
-          "07:00",
-          "07:05",
-          "07:50"
-        ]
-      }
-    ],
-    "Ballinasloe": [
-      {
-        "date": "Thursday 17th Sept",
-        "iso": "2026-09-17",
-        "times": [
-          "07:00",
-          "07:05"
-        ]
-      },
-      {
-        "date": "Monday 28th Sept",
-        "iso": "2026-09-28",
-        "times": [
-          "15:05"
-        ]
-      },
-      {
-        "date": "Saturday 3rd Oct",
-        "iso": "2026-10-03",
-        "times": [
-          "12:15"
         ]
       }
     ],
@@ -382,7 +333,6 @@
         "date": "Saturday 19th Sept",
         "iso": "2026-09-19",
         "times": [
-          "17:00",
           "19:00",
           "20:10",
           "21:10"
@@ -1313,37 +1263,6 @@
         ]
       }
     ],
-    "Galway": [
-      {
-        "date": "Thursday 1st Oct",
-        "iso": "2026-10-01",
-        "times": [
-          "11:55"
-        ]
-      },
-      {
-        "date": "Saturday 3rd Oct",
-        "iso": "2026-10-03",
-        "times": [
-          "19:40"
-        ]
-      },
-      {
-        "date": "Sunday 4th Oct",
-        "iso": "2026-10-04",
-        "times": [
-          "08:50",
-          "09:10",
-          "11:10",
-          "12:40",
-          "13:10",
-          "15:40",
-          "16:20",
-          "17:40",
-          "19:00"
-        ]
-      }
-    ],
     "Kells": [
       {
         "date": "Monday 14th Sept",
@@ -1795,55 +1714,6 @@
         ]
       }
     ],
-    "Macroom": [
-      {
-        "date": "Tuesday 15th Sept",
-        "iso": "2026-09-15",
-        "times": [
-          "22:25"
-        ]
-      },
-      {
-        "date": "Wednesday 16th Sept",
-        "iso": "2026-09-16",
-        "times": [
-          "07:55",
-          "09:15",
-          "09:25",
-          "13:55"
-        ]
-      },
-      {
-        "date": "Thursday 17th Sept",
-        "iso": "2026-09-17",
-        "times": [
-          "07:55"
-        ]
-      },
-      {
-        "date": "Friday 18th Sept",
-        "iso": "2026-09-18",
-        "times": [
-          "09:25",
-          "14:15",
-          "16:35"
-        ]
-      },
-      {
-        "date": "Saturday 19th Sept",
-        "iso": "2026-09-19",
-        "times": [
-          "07:25"
-        ]
-      },
-      {
-        "date": "Thursday 5th Nov",
-        "iso": "2026-11-05",
-        "times": [
-          "15:15"
-        ]
-      }
-    ],
     "Nenagh": [
       {
         "date": "Thursday 17th Sept",
@@ -2148,18 +2018,6 @@
         ]
       }
     ],
-    "Tuam": [
-      {
-        "date": "Friday 2nd Oct",
-        "iso": "2026-10-02",
-        "times": [
-          "11:10",
-          "14:10",
-          "15:40",
-          "16:20"
-        ]
-      }
-    ],
     "Tullamore": [
       {
         "date": "Thursday 17th Sept",
@@ -2311,46 +2169,6 @@
           "15:20",
           "16:00",
           "17:00"
-        ]
-      }
-    ],
-    "Westport": [
-      {
-        "date": "Monday 14th Sept",
-        "iso": "2026-09-14",
-        "times": [
-          "08:45",
-          "09:25",
-          "11:05"
-        ]
-      },
-      {
-        "date": "Tuesday 15th Sept",
-        "iso": "2026-09-15",
-        "times": [
-          "21:05"
-        ]
-      },
-      {
-        "date": "Wednesday 16th Sept",
-        "iso": "2026-09-16",
-        "times": [
-          "17:55"
-        ]
-      },
-      {
-        "date": "Thursday 17th Sept",
-        "iso": "2026-09-17",
-        "times": [
-          "14:15",
-          "15:35"
-        ]
-      },
-      {
-        "date": "Friday 18th Sept",
-        "iso": "2026-09-18",
-        "times": [
-          "15:35"
         ]
       }
     ],
