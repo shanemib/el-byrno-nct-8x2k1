@@ -43,7 +43,6 @@
         "date": "Monday 14th Sept",
         "iso": "2026-09-14",
         "times": [
-          "13:30",
           "15:50"
         ]
       },
@@ -1316,13 +1315,6 @@
     ],
     "Galway": [
       {
-        "date": "Saturday 12th Sept",
-        "iso": "2026-09-12",
-        "times": [
-          "09:10"
-        ]
-      },
-      {
         "date": "Thursday 1st Oct",
         "iso": "2026-10-01",
         "times": [
@@ -1403,13 +1395,6 @@
         "times": [
           "08:15",
           "15:15"
-        ]
-      },
-      {
-        "date": "Friday 18th Sept",
-        "iso": "2026-09-18",
-        "times": [
-          "10:40"
         ]
       },
       {
