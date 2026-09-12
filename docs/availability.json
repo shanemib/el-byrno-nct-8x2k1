@@ -78,13 +78,6 @@
     ],
     "Carndonagh": [
       {
-        "date": "Thursday 17th Sept",
-        "iso": "2026-09-17",
-        "times": [
-          "14:45"
-        ]
-      },
-      {
         "date": "Tuesday 29th Sept",
         "iso": "2026-09-29",
         "times": [
@@ -94,17 +87,9 @@
     ],
     "Cavan": [
       {
-        "date": "Sunday 20th Sept",
-        "iso": "2026-09-20",
-        "times": [
-          "19:30"
-        ]
-      },
-      {
         "date": "Thursday 1st Oct",
         "iso": "2026-10-01",
         "times": [
-          "07:15",
           "07:35",
           "07:45",
           "08:05",
@@ -126,7 +111,6 @@
         "iso": "2026-10-02",
         "times": [
           "06:40",
-          "06:50",
           "07:00",
           "07:10",
           "07:20",
@@ -147,7 +131,6 @@
         "date": "Saturday 3rd Oct",
         "iso": "2026-10-03",
         "times": [
-          "20:20",
           "20:30",
           "20:40",
           "20:50",
@@ -183,24 +166,15 @@
     ],
     "Cork-Blarney": [
       {
-        "date": "Monday 14th Sept",
-        "iso": "2026-09-14",
-        "times": [
-          "10:55"
-        ]
-      },
-      {
         "date": "Thursday 17th Sept",
         "iso": "2026-09-17",
         "times": [
           "07:55",
-          "13:55",
           "14:25",
           "15:15",
           "16:55",
           "18:05",
           "18:15",
-          "19:35",
           "19:45"
         ]
       },
@@ -226,7 +200,6 @@
         "date": "Saturday 19th Sept",
         "iso": "2026-09-19",
         "times": [
-          "14:55",
           "15:45",
           "16:55"
         ]
@@ -249,7 +222,6 @@
         "date": "Thursday 1st Oct",
         "iso": "2026-10-01",
         "times": [
-          "17:35",
           "17:45",
           "17:55",
           "18:45",
@@ -457,14 +429,6 @@
     ],
     "Derrybeg": [
       {
-        "date": "Thursday 24th Sept",
-        "iso": "2026-09-24",
-        "times": [
-          "11:25",
-          "17:45"
-        ]
-      },
-      {
         "date": "Wednesday 4th Nov",
         "iso": "2026-11-04",
         "times": [
@@ -474,10 +438,16 @@
     ],
     "Dundalk": [
       {
+        "date": "Saturday 12th Sept",
+        "iso": "2026-09-12",
+        "times": [
+          "22:15"
+        ]
+      },
+      {
         "date": "Tuesday 29th Sept",
         "iso": "2026-09-29",
         "times": [
-          "01:45",
           "01:55",
           "02:05",
           "02:15",
@@ -493,7 +463,6 @@
         "date": "Saturday 3rd Oct",
         "iso": "2026-10-03",
         "times": [
-          "22:45",
           "22:55"
         ]
       },
@@ -680,7 +649,6 @@
         "date": "Sunday 4th Oct",
         "iso": "2026-10-04",
         "times": [
-          "16:50",
           "17:10",
           "17:20",
           "17:30",
@@ -694,12 +662,12 @@
         ]
       }
     ],
-    "Killarney": [
+    "Galway": [
       {
-        "date": "Saturday 19th Sept",
-        "iso": "2026-09-19",
+        "date": "Tuesday 15th Sept",
+        "iso": "2026-09-15",
         "times": [
-          "20:20"
+          "09:35"
         ]
       }
     ],
@@ -708,7 +676,6 @@
         "date": "Tuesday 27th Oct",
         "iso": "2026-10-27",
         "times": [
-          "08:45",
           "09:15",
           "14:45",
           "15:15",
@@ -929,24 +896,6 @@
         ]
       }
     ],
-    "Navan": [
-      {
-        "date": "Thursday 17th Sept",
-        "iso": "2026-09-17",
-        "times": [
-          "16:05"
-        ]
-      }
-    ],
-    "Northpoint 2 (Exit 4, M50)": [
-      {
-        "date": "Tuesday 29th Sept",
-        "iso": "2026-09-29",
-        "times": [
-          "15:55"
-        ]
-      }
-    ],
     "Skibbereen": [
       {
         "date": "Thursday 29th Oct",
@@ -962,7 +911,6 @@
         "date": "Friday 30th Oct",
         "iso": "2026-10-30",
         "times": [
-          "09:15",
           "13:15",
           "13:45",
           "14:15",
@@ -1111,6 +1059,15 @@
         ]
       }
     ],
+    "Tullamore": [
+      {
+        "date": "Thursday 17th Sept",
+        "iso": "2026-09-17",
+        "times": [
+          "12:45"
+        ]
+      }
+    ],
     "Waterford": [
       {
         "date": "Wednesday 16th Sept",
@@ -1155,7 +1112,6 @@
         "date": "Sunday 20th Sept",
         "iso": "2026-09-20",
         "times": [
-          "08:30",
           "10:50",
           "11:00",
           "11:20",
@@ -1164,6 +1120,20 @@
           "15:00",
           "15:20",
           "17:00"
+        ]
+      },
+      {
+        "date": "Tuesday 22nd Sept",
+        "iso": "2026-09-22",
+        "times": [
+          "11:15"
+        ]
+      },
+      {
+        "date": "Thursday 1st Oct",
+        "iso": "2026-10-01",
+        "times": [
+          "14:45"
         ]
       }
     ],
