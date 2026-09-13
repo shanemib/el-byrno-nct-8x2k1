@@ -31,23 +31,7 @@
         ]
       }
     ],
-    "Castlerea": [
-      {
-        "date": "Tuesday 20th Oct",
-        "iso": "2026-10-20",
-        "times": [
-          "10:55"
-        ]
-      }
-    ],
     "Cavan": [
-      {
-        "date": "Tuesday 15th Sept",
-        "iso": "2026-09-15",
-        "times": [
-          "07:45"
-        ]
-      },
       {
         "date": "Friday 2nd Oct",
         "iso": "2026-10-02",
@@ -283,7 +267,6 @@
         "date": "Saturday 3rd Oct",
         "iso": "2026-10-03",
         "times": [
-          "20:40",
           "20:50",
           "21:00"
         ]
@@ -303,15 +286,6 @@
         "iso": "2026-09-20",
         "times": [
           "12:40"
-        ]
-      }
-    ],
-    "Killarney": [
-      {
-        "date": "Monday 14th Sept",
-        "iso": "2026-09-14",
-        "times": [
-          "21:00"
         ]
       }
     ],
@@ -511,12 +485,12 @@
         ]
       }
     ],
-    "Mullingar": [
+    "Portlaoise": [
       {
-        "date": "Tuesday 15th Sept",
-        "iso": "2026-09-15",
+        "date": "Saturday 3rd Oct",
+        "iso": "2026-10-03",
         "times": [
-          "21:55"
+          "10:55"
         ]
       }
     ],
@@ -671,23 +645,9 @@
         "times": [
           "13:45"
         ]
-      },
-      {
-        "date": "Sunday 27th Sept",
-        "iso": "2026-09-27",
-        "times": [
-          "10:00"
-        ]
       }
     ],
     "Youghal": [
-      {
-        "date": "Monday 21st Sept",
-        "iso": "2026-09-21",
-        "times": [
-          "00:45"
-        ]
-      },
       {
         "date": "Tuesday 29th Sept",
         "iso": "2026-09-29",
