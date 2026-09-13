@@ -3,42 +3,114 @@
   "centres": {
     "Abbeyfeale": [
       {
-        "date": "Monday 14th Sept",
-        "iso": "2026-09-14",
+        "date": "Thursday 17th Sept",
+        "iso": "2026-09-17",
         "times": [
-          "07:25"
+          "09:15"
+        ]
+      }
+    ],
+    "Ballina": [
+      {
+        "date": "Friday 2nd Oct",
+        "iso": "2026-10-02",
+        "times": [
+          "19:20"
+        ]
+      }
+    ],
+    "Cahir": [
+      {
+        "date": "Saturday 3rd Oct",
+        "iso": "2026-10-03",
+        "times": [
+          "09:40"
         ]
       }
     ],
     "Carlow": [
       {
+        "date": "Tuesday 29th Sept",
+        "iso": "2026-09-29",
+        "times": [
+          "00:45",
+          "01:35",
+          "02:45",
+          "03:15",
+          "15:05"
+        ]
+      },
+      {
+        "date": "Wednesday 30th Sept",
+        "iso": "2026-09-30",
+        "times": [
+          "10:55",
+          "12:05"
+        ]
+      },
+      {
+        "date": "Thursday 1st Oct",
+        "iso": "2026-10-01",
+        "times": [
+          "10:55",
+          "18:55",
+          "19:25",
+          "20:55",
+          "21:25"
+        ]
+      },
+      {
+        "date": "Friday 2nd Oct",
+        "iso": "2026-10-02",
+        "times": [
+          "08:55",
+          "12:55"
+        ]
+      },
+      {
+        "date": "Saturday 3rd Oct",
+        "iso": "2026-10-03",
+        "times": [
+          "12:05",
+          "21:15",
+          "21:55",
+          "22:15"
+        ]
+      },
+      {
+        "date": "Sunday 4th Oct",
+        "iso": "2026-10-04",
+        "times": [
+          "00:45",
+          "01:05",
+          "01:35",
+          "02:45",
+          "03:15",
+          "17:45",
+          "18:25",
+          "21:20",
+          "21:50",
+          "22:50"
+        ]
+      },
+      {
         "date": "Monday 5th Oct",
         "iso": "2026-10-05",
         "times": [
-          "00:35",
           "00:45",
           "00:55",
           "01:05"
         ]
       }
     ],
-    "Castleisland": [
+    "Cavan": [
       {
-        "date": "Monday 14th Sept",
-        "iso": "2026-09-14",
+        "date": "Monday 21st Sept",
+        "iso": "2026-09-21",
         "times": [
-          "16:35"
+          "10:45"
         ]
       },
-      {
-        "date": "Tuesday 22nd Sept",
-        "iso": "2026-09-22",
-        "times": [
-          "15:25"
-        ]
-      }
-    ],
-    "Cavan": [
       {
         "date": "Friday 2nd Oct",
         "iso": "2026-10-02",
@@ -54,9 +126,6 @@
         "date": "Sunday 4th Oct",
         "iso": "2026-10-04",
         "times": [
-          "17:20",
-          "17:30",
-          "17:40",
           "17:50",
           "18:10",
           "18:20",
@@ -73,7 +142,6 @@
         "date": "Thursday 29th Oct",
         "iso": "2026-10-29",
         "times": [
-          "08:15",
           "08:45"
         ]
       },
@@ -188,30 +256,13 @@
           "14:45",
           "15:45",
           "16:15",
-          "17:50",
           "18:20",
           "18:50",
           "19:20"
         ]
       }
     ],
-    "Cork-Little Island": [
-      {
-        "date": "Wednesday 23rd Sept",
-        "iso": "2026-09-23",
-        "times": [
-          "08:15"
-        ]
-      }
-    ],
     "Dundalk": [
-      {
-        "date": "Tuesday 29th Sept",
-        "iso": "2026-09-29",
-        "times": [
-          "02:55"
-        ]
-      },
       {
         "date": "Sunday 4th Oct",
         "iso": "2026-10-04",
@@ -257,13 +308,27 @@
         ]
       }
     ],
+    "Ennis": [
+      {
+        "date": "Sunday 4th Oct",
+        "iso": "2026-10-04",
+        "times": [
+          "18:40"
+        ]
+      }
+    ],
     "Enniscorthy": [
+      {
+        "date": "Saturday 26th Sept",
+        "iso": "2026-09-26",
+        "times": [
+          "20:20"
+        ]
+      },
       {
         "date": "Friday 2nd Oct",
         "iso": "2026-10-02",
         "times": [
-          "16:10",
-          "20:30",
           "20:40",
           "21:00",
           "21:10",
@@ -288,12 +353,18 @@
         "date": "Sunday 4th Oct",
         "iso": "2026-10-04",
         "times": [
-          "18:50",
           "19:10"
         ]
       }
     ],
     "Letterkenny": [
+      {
+        "date": "Monday 21st Sept",
+        "iso": "2026-09-21",
+        "times": [
+          "07:25"
+        ]
+      },
       {
         "date": "Wednesday 28th Oct",
         "iso": "2026-10-28",
@@ -491,21 +562,33 @@
     ],
     "Portlaoise": [
       {
+        "date": "Thursday 1st Oct",
+        "iso": "2026-10-01",
+        "times": [
+          "17:05"
+        ]
+      },
+      {
+        "date": "Friday 2nd Oct",
+        "iso": "2026-10-02",
+        "times": [
+          "17:50",
+          "19:10",
+          "19:40"
+        ]
+      },
+      {
         "date": "Saturday 3rd Oct",
         "iso": "2026-10-03",
         "times": [
-          "10:55"
+          "09:15",
+          "09:35",
+          "11:35",
+          "12:15"
         ]
       }
     ],
     "Skibbereen": [
-      {
-        "date": "Friday 30th Oct",
-        "iso": "2026-10-30",
-        "times": [
-          "19:20"
-        ]
-      },
       {
         "date": "Saturday 31st Oct",
         "iso": "2026-10-31",
@@ -642,30 +725,45 @@
         ]
       }
     ],
-    "Waterford": [
+    "Tullamore": [
       {
-        "date": "Monday 14th Sept",
-        "iso": "2026-09-14",
+        "date": "Thursday 1st Oct",
+        "iso": "2026-10-01",
         "times": [
-          "13:45"
+          "09:05",
+          "09:55",
+          "16:55"
+        ]
+      },
+      {
+        "date": "Friday 2nd Oct",
+        "iso": "2026-10-02",
+        "times": [
+          "08:55",
+          "09:05",
+          "09:35",
+          "10:35",
+          "12:55",
+          "14:25",
+          "16:05",
+          "17:05",
+          "18:00"
+        ]
+      },
+      {
+        "date": "Saturday 3rd Oct",
+        "iso": "2026-10-03",
+        "times": [
+          "13:10",
+          "13:55",
+          "14:15",
+          "15:35",
+          "16:05",
+          "16:35"
         ]
       }
     ],
     "Youghal": [
-      {
-        "date": "Sunday 20th Sept",
-        "iso": "2026-09-20",
-        "times": [
-          "01:15"
-        ]
-      },
-      {
-        "date": "Tuesday 29th Sept",
-        "iso": "2026-09-29",
-        "times": [
-          "02:45"
-        ]
-      },
       {
         "date": "Sunday 4th Oct",
         "iso": "2026-10-04",
