@@ -10,24 +10,6 @@
         ]
       }
     ],
-    "Ballina": [
-      {
-        "date": "Friday 2nd Oct",
-        "iso": "2026-10-02",
-        "times": [
-          "19:20"
-        ]
-      }
-    ],
-    "Cahir": [
-      {
-        "date": "Saturday 3rd Oct",
-        "iso": "2026-10-03",
-        "times": [
-          "09:40"
-        ]
-      }
-    ],
     "Carlow": [
       {
         "date": "Tuesday 29th Sept",
@@ -36,8 +18,7 @@
           "00:45",
           "01:35",
           "02:45",
-          "03:15",
-          "15:05"
+          "03:15"
         ]
       },
       {
@@ -104,13 +85,6 @@
       }
     ],
     "Cavan": [
-      {
-        "date": "Monday 21st Sept",
-        "iso": "2026-09-21",
-        "times": [
-          "10:45"
-        ]
-      },
       {
         "date": "Friday 2nd Oct",
         "iso": "2026-10-02",
@@ -262,6 +236,15 @@
         ]
       }
     ],
+    "Deansgrange": [
+      {
+        "date": "Saturday 31st Oct",
+        "iso": "2026-10-31",
+        "times": [
+          "13:45"
+        ]
+      }
+    ],
     "Dundalk": [
       {
         "date": "Sunday 4th Oct",
@@ -308,15 +291,6 @@
         ]
       }
     ],
-    "Ennis": [
-      {
-        "date": "Sunday 4th Oct",
-        "iso": "2026-10-04",
-        "times": [
-          "18:40"
-        ]
-      }
-    ],
     "Enniscorthy": [
       {
         "date": "Saturday 26th Sept",
@@ -357,14 +331,16 @@
         ]
       }
     ],
-    "Letterkenny": [
+    "Galway": [
       {
-        "date": "Monday 21st Sept",
-        "iso": "2026-09-21",
+        "date": "Saturday 24th Oct",
+        "iso": "2026-10-24",
         "times": [
-          "07:25"
+          "13:30"
         ]
-      },
+      }
+    ],
+    "Letterkenny": [
       {
         "date": "Wednesday 28th Oct",
         "iso": "2026-10-28",
