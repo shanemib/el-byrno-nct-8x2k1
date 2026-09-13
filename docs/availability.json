@@ -453,7 +453,6 @@
         "date": "Sunday 20th Sept",
         "iso": "2026-09-20",
         "times": [
-          "09:10",
           "09:20",
           "10:30",
           "11:20",
@@ -560,15 +559,6 @@
         ]
       }
     ],
-    "Greenhills (Exit 11,M50)": [
-      {
-        "date": "Thursday 1st Oct",
-        "iso": "2026-10-01",
-        "times": [
-          "15:15"
-        ]
-      }
-    ],
     "Kells": [
       {
         "date": "Tuesday 29th Sept",
@@ -581,8 +571,7 @@
         "date": "Wednesday 30th Sept",
         "iso": "2026-09-30",
         "times": [
-          "07:55",
-          "11:35"
+          "07:55"
         ]
       },
       {
@@ -1042,12 +1031,21 @@
         ]
       }
     ],
-    "Northpoint 2 (Exit 4, M50)": [
+    "Nenagh": [
       {
         "date": "Tuesday 22nd Sept",
         "iso": "2026-09-22",
         "times": [
-          "09:15"
+          "21:35"
+        ]
+      }
+    ],
+    "Northpoint 1 (Exit 4, M50)": [
+      {
+        "date": "Tuesday 6th Oct",
+        "iso": "2026-10-06",
+        "times": [
+          "12:25"
         ]
       }
     ],
