@@ -1,6 +1,15 @@
 {
   "window_days": 56,
   "centres": {
+    "Abbeyfeale": [
+      {
+        "date": "Thursday 17th Sept",
+        "iso": "2026-09-17",
+        "times": [
+          "09:15"
+        ]
+      }
+    ],
     "Carlow": [
       {
         "date": "Sunday 20th Sept",
@@ -313,6 +322,15 @@
         "iso": "2026-10-04",
         "times": [
           "19:10"
+        ]
+      }
+    ],
+    "Kells": [
+      {
+        "date": "Monday 21st Sept",
+        "iso": "2026-09-21",
+        "times": [
+          "07:45"
         ]
       }
     ],
@@ -691,8 +709,6 @@
         "date": "Thursday 1st Oct",
         "iso": "2026-10-01",
         "times": [
-          "09:05",
-          "09:55",
           "16:55"
         ]
       },
