@@ -311,6 +311,13 @@
     ],
     "Letterkenny": [
       {
+        "date": "Tuesday 15th Sept",
+        "iso": "2026-09-15",
+        "times": [
+          "07:25"
+        ]
+      },
+      {
         "date": "Wednesday 28th Oct",
         "iso": "2026-10-28",
         "times": [
@@ -514,16 +521,14 @@
         ]
       }
     ],
-    "Naas": [
+    "Portlaoise": [
       {
         "date": "Thursday 1st Oct",
         "iso": "2026-10-01",
         "times": [
-          "14:25"
+          "17:05"
         ]
-      }
-    ],
-    "Portlaoise": [
+      },
       {
         "date": "Friday 2nd Oct",
         "iso": "2026-10-02",
