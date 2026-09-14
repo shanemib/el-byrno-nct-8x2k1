@@ -57,7 +57,6 @@
         "date": "Saturday 3rd Oct",
         "iso": "2026-10-03",
         "times": [
-          "12:05",
           "21:15",
           "21:55",
           "22:15"
@@ -287,13 +286,6 @@
     ],
     "Enniscorthy": [
       {
-        "date": "Saturday 26th Sept",
-        "iso": "2026-09-26",
-        "times": [
-          "20:20"
-        ]
-      },
-      {
         "date": "Friday 2nd Oct",
         "iso": "2026-10-02",
         "times": [
@@ -322,15 +314,6 @@
         "iso": "2026-10-04",
         "times": [
           "19:10"
-        ]
-      }
-    ],
-    "Kells": [
-      {
-        "date": "Monday 21st Sept",
-        "iso": "2026-09-21",
-        "times": [
-          "07:45"
         ]
       }
     ],
