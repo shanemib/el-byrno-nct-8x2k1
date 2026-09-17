@@ -136,15 +136,40 @@ async def accept_voluntary_test_warning_if_present(page):
 # tokens already baked in, so no separate reload is needed before retrying.
 MAX_SEARCH_ATTEMPTS = 6
 
+# Text ncts.ie shows for a registration it doesn't recognize (mistyped,
+# never registered, or no longer on the road) — see VehicleNotFoundError.
+VEHICLE_NOT_FOUND_TEXT = "No information for this Vehicle has been Found"
+
+
+class VehicleNotFoundError(Exception):
+    """Raised when ncts.ie explicitly rejects a registration as unrecognized
+    — a real, permanent outcome for that reg, not a fluke worth retrying (see
+    MAX_SEARCH_ATTEMPTS above, which is for actual transient bounces). Caught
+    in main(), which falls back to a different registration from NCT_REGS
+    when one is available, rather than failing the whole run over one bad
+    reg in the list."""
+
+    def __init__(self, reg: str):
+        self.reg = reg
+        super().__init__(f"ncts.ie has no record of registration {reg!r}")
+
 
 async def _search_vehicle_once(page, reg: str):
     """One attempt at the reg search. Returns True if it got past the
-    homepage, False if it silently bounced back to it."""
+    homepage, False if it silently bounced back to it. Raises
+    VehicleNotFoundError if ncts.ie explicitly said this registration isn't
+    real — that's permanent for this reg, so retrying it again here would
+    just fail identically (and previously ran on to hit a stale locator on
+    the "not found" page's different button, timing out instead of failing
+    cleanly)."""
     reg_box = page.get_by_role("textbox", name="Enter Registration")
     await reg_box.click()
     await reg_box.fill(reg)
     await page.get_by_role("button", name="Search Vehicle").click()
     await page.wait_for_load_state("networkidle")
+
+    if await page.get_by_text(VEHICLE_NOT_FOUND_TEXT).count():
+        raise VehicleNotFoundError(reg)
 
     # Still seeing the homepage's own search box means the search didn't
     # actually go anywhere — the real booking flow has no such element.
@@ -208,8 +233,22 @@ async def get_all_centre_names(page) -> list[str]:
 
     select = page.get_by_label("Select Station")
     if await select.count() == 0:
-        print("[centres] could not find the 'Select Station' dropdown")
-        return []
+        # This used to just log and return [] — which let a run "succeed"
+        # with zero centres and report no availability to every subscriber,
+        # even when appointments genuinely existed, because run_flow() had
+        # actually landed somewhere other than the real results page (e.g.
+        # a registration whose NCT due-date puts it on a different branch
+        # of the booking flow than the one this was built against) and
+        # nothing ever noticed. Raising here instead means the run shows as
+        # failed (so it's visible, and feeds the failure-streak alert) and
+        # save_failure_debug() in main() captures exactly what page this
+        # was actually on — silent wrong answers are worse than loud ones
+        # for a tool whose entire job is telling people accurately whether
+        # to check ncts.ie themselves.
+        raise RuntimeError(
+            "could not find the 'Select Station' dropdown — the booking "
+            "flow likely didn't reach the real results page this run"
+        )
 
     options = await select.locator("option").all_inner_texts()
     names = [o.strip() for o in options if o.strip()]
@@ -524,8 +563,6 @@ async def main():
             "191D12345; NCT_REGS accepts a comma-separated list to rotate "
             "between several)."
         )
-    reg = random.choice(NCT_REGS)
-
     subscribers = fetch_verified_subscribers()
     days_needed = [s.get("days_ahead") or DEFAULT_DAYS_AHEAD for s in subscribers]
     max_days = min(max(max(days_needed, default=DEFAULT_DAYS_AHEAD), MIN_PUBLIC_SCAN_DAYS), MAX_DAYS_AHEAD_CAP)
@@ -539,7 +576,24 @@ async def main():
         page = await browser.new_page()
 
         try:
-            await run_flow(page, reg)
+            # Try registrations in random order, one at a time, until one
+            # actually gets past the search — so a single stale/mistyped
+            # entry in NCT_REGS costs a few extra seconds, not the whole
+            # run. random.sample with the full length shuffles without
+            # repeats, so every reg gets exactly one try.
+            regs_to_try = random.sample(NCT_REGS, len(NCT_REGS))
+            for i, candidate_reg in enumerate(regs_to_try):
+                try:
+                    await run_flow(page, candidate_reg)
+                    break
+                except VehicleNotFoundError as e:
+                    remaining = regs_to_try[i + 1:]
+                    if not remaining:
+                        raise
+                    print(
+                        f"[search] {e} — trying a different registration "
+                        f"({len(remaining)} left to try)..."
+                    )
             await expand_all_centres(page)
 
             all_centres = await get_all_centre_names(page)

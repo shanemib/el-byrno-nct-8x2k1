@@ -25,6 +25,7 @@ ENVIRONMENT VARIABLES (set as GitHub Actions secrets):
 
 import os
 import smtplib
+import time
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -65,14 +66,25 @@ def _send_via_gmail(to: str, subject: str, html: str, text: str | None = None, u
         msg.attach(MIMEText(text, "plain"))
     msg.attach(MIMEText(html, "html"))
 
-    try:
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=15) as server:
-            server.login(GMAIL_USER, GMAIL_APP_PASSWORD)
-            server.sendmail(GMAIL_USER, [to], msg.as_string())
-        return True
-    except Exception as e:
-        print(f"[gmail] error emailing {to}: {e}")
-        return False
+    # Sending from GitHub Actions means a different, unfamiliar IP almost
+    # every run (shared cloud runners, no fixed address) — Gmail sometimes
+    # rejects the SMTP login from a given IP with "535 Username and
+    # Password not accepted" even though the credentials themselves are
+    # fine, apparently just because that particular IP hasn't sent from
+    # this account before. A fresh connection moments later frequently
+    # succeeds, so retry a couple of times before actually giving up.
+    attempts = 3
+    for attempt in range(1, attempts + 1):
+        try:
+            with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=15) as server:
+                server.login(GMAIL_USER, GMAIL_APP_PASSWORD)
+                server.sendmail(GMAIL_USER, [to], msg.as_string())
+            return True
+        except Exception as e:
+            print(f"[gmail] error emailing {to} (attempt {attempt}/{attempts}): {e}")
+            if attempt < attempts:
+                time.sleep(5 * attempt)  # 5s, then 10s
+    return False
 
 
 def _send_via_resend(to: str, subject: str, html: str, text: str | None = None, unsubscribe_url: str | None = None) -> bool:
