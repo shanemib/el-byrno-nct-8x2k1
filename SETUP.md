@@ -458,8 +458,18 @@ click:
    file, not just the line above) so the updated `signup_subscriber`
    function — the one that actually checks the Turnstile token — replaces
    the old one.
-8. That's it — the next signup attempt on the live site will require passing
-   the Turnstile check before `signup_subscriber` will insert the row.
+8. That's it. One important nuance: verification isn't instant. Postgres
+   can't synchronously wait for Cloudflare's response inside the same
+   database transaction that handles the signup (a `pg_net` limitation —
+   see the comments in `signup_subscriber` and `get_turnstile_verification`
+   in `supabase_schema.sql` if you want the full story), so a signup is
+   always accepted immediately, and the actual Turnstile result is checked
+   afterwards by `process_signups.py` (the same job that already sends
+   confirmation emails, running every ~10 minutes) right before it would
+   send the confirmation email. If verification failed, that job deletes
+   the signup instead of emailing it — so a bot's row can sit in the
+   `subscribers` table for up to ~10 minutes, but it never gets an email
+   and never becomes a real subscriber.
 
 If you ever want to turn it back off, find the secret's id and clear it:
 ```sql

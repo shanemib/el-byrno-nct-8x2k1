@@ -15,7 +15,7 @@ ENVIRONMENT VARIABLES (set as GitHub Actions secrets, see SETUP.md):
 
 import os
 
-from supabase_utils import get_rows, patch_row
+from supabase_utils import get_rows, patch_row, delete_row, call_rpc
 from resend_utils import send_email
 
 SITE_BASE_URL = os.environ.get("SITE_BASE_URL", "").rstrip("/")
@@ -42,17 +42,45 @@ def build_verification_email(verify_link: str, manage_link: str) -> tuple[str, s
     return html, text
 
 
+def turnstile_status_ok(row: dict) -> bool:
+    """True if this signup should go ahead and get its confirmation email.
+    See get_turnstile_verification() in supabase_schema.sql for why this
+    can't be checked synchronously at signup time — it has to happen here,
+    after the signup transaction has committed and pg_net has actually had
+    a chance to hear back from Cloudflare."""
+    request_id = row.get("turnstile_request_id")
+    if request_id is None:
+        return True  # Turnstile not configured, or not applicable to this row.
+
+    status = call_rpc("get_turnstile_verification", {"p_request_id": request_id})
+
+    if status == "pending":
+        # Very rare — pg_net normally finishes in well under a second, long
+        # before this job's next run. Leave it for next time rather than
+        # guessing either way.
+        print(f"[signups] {row['email']}: turnstile check still pending, will retry next run")
+        return False
+    if status == "failed":
+        print(f"[signups] {row['email']}: failed Turnstile verification — removing signup, no email sent")
+        delete_row("subscribers", "id", row["id"])
+        return False
+    return True  # 'success' or 'not_configured'
+
+
 def main():
     pending = get_rows(
         "subscribers",
         {
             "verification_sent": "eq.false",
-            "select": "id,email,verify_token,unsubscribe_token",
+            "select": "id,email,verify_token,unsubscribe_token,turnstile_request_id",
         },
     )
     print(f"[signups] {len(pending)} pending verification email(s)")
 
     for row in pending:
+        if not turnstile_status_ok(row):
+            continue
+
         verify_link = f"{SITE_BASE_URL}/verify.html?token={row['verify_token']}"
         manage_link = f"{SITE_BASE_URL}/manage.html?token={row['unsubscribe_token']}"
         unsubscribe_link = f"{SITE_BASE_URL}/unsubscribe.html?token={row['unsubscribe_token']}"

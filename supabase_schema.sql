@@ -93,6 +93,13 @@ create index if not exists subscribers_plan_idx on subscribers (plan);
 -- +353871234567 (validated loosely below).
 alter table subscribers add column if not exists whatsapp_number text;
 
+-- The pg_net request id for this signup's Cloudflare Turnstile check (see
+-- signup_subscriber below for why this can't be verified synchronously at
+-- signup time). Null when Turnstile isn't configured, or wasn't applicable.
+-- process_signups.py reads this via get_turnstile_verification() before
+-- sending the confirmation email, and deletes the row instead if it failed.
+alter table subscribers add column if not exists turnstile_request_id bigint;
+
 alter table subscribers enable row level security;
 -- Intentionally no policies here — see design notes above.
 
@@ -128,9 +135,7 @@ declare
   -- runs security definer as its owner, so it can read vault.decrypted_secrets
   -- even though the anon role calling it cannot.
   v_turnstile_secret text;
-  v_request_id bigint;
-  v_verify_response jsonb;
-  v_waited numeric := 0;
+  v_turnstile_request_id bigint;
 begin
   if p_email is null or p_email !~ '^[^@\s]+@[^@\s]+\.[^@\s]+$' then
     raise exception 'Please enter a valid email address';
@@ -155,30 +160,24 @@ begin
       raise exception 'Please complete the verification check and try again';
     end if;
 
+    -- Fire the Cloudflare check and move on immediately — do NOT try to poll
+    -- net._http_response for the result here. This whole function call is
+    -- one single database transaction, and pg_net's background worker can't
+    -- see a queued request (or write its result) until that transaction
+    -- commits — which only happens once this function *returns*. Polling in
+    -- a loop right here is a guaranteed deadlock: it can only ever time out,
+    -- no matter how long you wait (this was found the hard way — see the
+    -- earlier version of this function in git history if you're curious).
+    -- Real verification happens after the fact: process_signups.py calls
+    -- get_turnstile_verification() (below) once this transaction has
+    -- committed and pg_net has had time to actually process the request,
+    -- and deletes this row instead of emailing a confirmation link if it
+    -- failed. See SETUP.md "Bot protection" for the full picture.
     select net.http_post(
       url := 'https://challenges.cloudflare.com/turnstile/v0/siteverify',
       body := jsonb_build_object('secret', v_turnstile_secret, 'response', p_turnstile_token),
       headers := '{"Content-Type": "application/json"}'::jsonb
-    ) into v_request_id;
-
-    -- pg_net calls are async — the actual HTTP request runs in a background
-    -- worker and its result lands in net._http_response once done. Poll
-    -- briefly rather than blocking indefinitely: a slow or unreachable
-    -- Cloudflare endpoint should fail the signup after a few seconds, not
-    -- hang the request forever.
-    loop
-      select content::jsonb into v_verify_response
-      from net._http_response
-      where id = v_request_id;
-
-      exit when v_verify_response is not null or v_waited >= 5;
-      perform pg_sleep(0.2);
-      v_waited := v_waited + 0.2;
-    end loop;
-
-    if not coalesce((v_verify_response ->> 'success')::boolean, false) then
-      raise exception 'Verification failed — please refresh the page and try again';
-    end if;
+    ) into v_turnstile_request_id;
   end if;
 
   -- If this email already has a signup — confirmed or not (e.g. they made a
@@ -188,13 +187,70 @@ begin
   -- confirmation and availability email they get from here on.
   delete from subscribers where email = lower(p_email);
 
-  insert into subscribers (email, centres, days_ahead, whatsapp_number)
-  values (lower(p_email), p_centres, p_days_ahead, p_whatsapp_number);
+  insert into subscribers (email, centres, days_ahead, whatsapp_number, turnstile_request_id)
+  values (lower(p_email), p_centres, p_days_ahead, p_whatsapp_number, v_turnstile_request_id);
 end;
 $$;
 
 revoke all on function signup_subscriber(text, text[], int, text, text) from public;
 grant execute on function signup_subscriber(text, text[], int, text, text) to anon;
+
+-- ---------------------------------------------------------------------------
+-- get_turnstile_verification: called only by process_signups.py (via the
+-- service role key — see SETUP.md "Bot protection"), never by the website.
+-- Looks up the actual result of the Turnstile check signup_subscriber kicked
+-- off, now that enough time has passed for pg_net to have processed it.
+-- Returns one of:
+--   'not_configured' - p_request_id was null (Turnstile wasn't set up, or
+--                       this row predates it) — treat like 'success'.
+--   'pending'        - pg_net hasn't written a response yet. Rare in
+--                       practice (it's normally done in well under a
+--                       second) — process_signups.py just leaves the row
+--                       for its next run rather than guessing.
+--   'success'        - Cloudflare confirmed the token was genuine.
+--   'failed'         - Cloudflare rejected it, the request errored/timed
+--                       out, or the response wasn't parseable JSON.
+-- ---------------------------------------------------------------------------
+create or replace function get_turnstile_verification(p_request_id bigint)
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_row net._http_response%rowtype;
+  v_body jsonb;
+begin
+  if p_request_id is null then
+    return 'not_configured';
+  end if;
+
+  select * into v_row from net._http_response where id = p_request_id;
+
+  if not found then
+    return 'pending';
+  end if;
+
+  if v_row.timed_out or v_row.error_msg is not null or v_row.status_code is distinct from 200 then
+    return 'failed';
+  end if;
+
+  begin
+    v_body := v_row.content::jsonb;
+  exception when others then
+    return 'failed';
+  end;
+
+  if coalesce((v_body ->> 'success')::boolean, false) then
+    return 'success';
+  else
+    return 'failed';
+  end if;
+end;
+$$;
+
+revoke all on function get_turnstile_verification(bigint) from public;
+grant execute on function get_turnstile_verification(bigint) to service_role;
 
 -- ---------------------------------------------------------------------------
 -- verify_subscriber: called by verify.html when someone clicks their email link.

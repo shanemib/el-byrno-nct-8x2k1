@@ -74,3 +74,33 @@ def patch_row(table: str, match_column: str, match_value: str, fields: dict) -> 
         timeout=20,
     )
     resp.raise_for_status()
+
+
+def delete_row(table: str, match_column: str, match_value: str) -> None:
+    """DELETE the row(s) where match_column = match_value."""
+    if not configured():
+        return
+    resp = requests.delete(
+        f"{SUPABASE_URL}/rest/v1/{table}",
+        headers=_headers({"Prefer": "return=minimal"}),
+        params={match_column: f"eq.{match_value}"},
+        timeout=20,
+    )
+    resp.raise_for_status()
+
+
+def call_rpc(fn_name: str, args: dict):
+    """Call a Postgres function via PostgREST's /rpc/ endpoint, using the
+    service role key — same mechanism the website's anon-key callRpc() in
+    app.js uses, just with elevated privileges for server-side-only
+    functions like get_turnstile_verification()."""
+    if not configured():
+        return None
+    resp = requests.post(
+        f"{SUPABASE_URL}/rest/v1/rpc/{fn_name}",
+        headers=_headers(),
+        json=args,
+        timeout=20,
+    )
+    resp.raise_for_status()
+    return resp.json()
