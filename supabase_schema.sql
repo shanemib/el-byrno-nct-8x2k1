@@ -253,7 +253,37 @@ revoke all on function get_turnstile_verification(bigint) from public;
 grant execute on function get_turnstile_verification(bigint) to service_role;
 
 -- ---------------------------------------------------------------------------
--- verify_subscriber: called by verify.html when someone clicks their email link.
+-- subscriber_history: a permanent, append-only record of every email that
+-- has ever verified — unlike `subscribers`, unsubscribing never removes a
+-- row here. This is what makes an "all-time subscribers" count possible at
+-- all: `subscribers` only ever reflects who's currently active, since
+-- unsubscribe_subscriber deletes the row outright (by design, for privacy).
+-- One row per distinct email, ever — resubscribing later doesn't add a
+-- second row or inflate the count. No RLS policies granting direct access,
+-- same lockdown pattern as `subscribers`; only reachable through
+-- get_all_time_subscriber_count() below.
+-- ---------------------------------------------------------------------------
+create table if not exists subscriber_history (
+  email text primary key,
+  first_verified_at timestamptz not null default now()
+);
+
+alter table subscriber_history enable row level security;
+
+-- One-time (but safe to re-run) backfill: without this, the all-time count
+-- would start at zero and ignore everyone who verified before this feature
+-- existed. ON CONFLICT DO NOTHING makes re-running this script harmless —
+-- it only ever adds people who are missing, never touches existing rows.
+insert into subscriber_history (email)
+select email from subscribers where verified = true
+on conflict (email) do nothing;
+
+-- ---------------------------------------------------------------------------
+-- verify_subscriber: called by verify.html when someone clicks their email
+-- link. Also records the email in subscriber_history on its FIRST successful
+-- verification ever (see above) — deliberately not done in signup_subscriber,
+-- so a bot signup, a typo, or someone who never clicks the confirmation link
+-- never counts as an all-time subscriber.
 -- ---------------------------------------------------------------------------
 create or replace function verify_subscriber(p_token text)
 returns boolean
@@ -263,11 +293,19 @@ set search_path = public
 as $$
 declare
   affected int;
+  v_email text;
 begin
   update subscribers
   set verified = true
-  where verify_token = p_token and verified = false;
+  where verify_token = p_token and verified = false
+  returning email into v_email;
   get diagnostics affected = row_count;
+
+  if affected > 0 then
+    insert into subscriber_history (email) values (v_email)
+    on conflict (email) do nothing;
+  end if;
+
   return affected > 0;
 end;
 $$;
@@ -380,6 +418,27 @@ $$;
 
 revoke all on function get_subscriber_count() from public;
 grant execute on function get_subscriber_count() to anon;
+
+-- ---------------------------------------------------------------------------
+-- get_all_time_subscriber_count: total distinct people who have ever
+-- verified, from subscriber_history above — unlike get_subscriber_count(),
+-- this number never drops when someone unsubscribes. Aggregate only, same
+-- safety reasoning as get_subscriber_count() — granted to anon so it could
+-- be shown on the site later if wanted, but nothing requires that; querying
+-- it directly (`select get_all_time_subscriber_count();`) in the SQL Editor
+-- works fine too.
+-- ---------------------------------------------------------------------------
+create or replace function get_all_time_subscriber_count()
+returns int
+language sql
+security definer
+set search_path = public
+as $$
+  select count(*)::int from subscriber_history;
+$$;
+
+revoke all on function get_all_time_subscriber_count() from public;
+grant execute on function get_all_time_subscriber_count() to anon;
 
 -- ---------------------------------------------------------------------------
 -- availability_log: one row per centre, per hourly check — "did this centre
