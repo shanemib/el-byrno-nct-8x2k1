@@ -78,6 +78,7 @@ jobs:
           path: |
             debug_failure.png
             debug_failure.html
+            debug_failure_reason.txt
           if-no-files-found: ignore
           retention-days: 14
 

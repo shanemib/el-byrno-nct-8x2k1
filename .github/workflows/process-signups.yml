@@ -20,6 +20,12 @@ on:
     - cron: "4,14,24,34,44,54 * * * *"
   workflow_dispatch: {}
 
+# actions:read - so the failure-streak check below can read this
+# workflow's own recent run history via the GitHub API (same setup as
+# nct-check.yml).
+permissions:
+  actions: read
+
 jobs:
   process:
     runs-on: ubuntu-latest
@@ -43,3 +49,17 @@ jobs:
           RESEND_FROM: ${{ secrets.RESEND_FROM }}
           SITE_BASE_URL: ${{ vars.SITE_BASE_URL }}
         run: python process_signups.py
+
+      - name: Check failure streak and alert if needed
+        # Only runs when the step above failed. Same script and thresholds
+        # as nct-check.yml (3 in a row, or 30% of the last 10 runs) — a
+        # single failed run doesn't email you. This workflow has no browser
+        # step, so there's no debug screenshot to attach here, just the
+        # error line from the log.
+        if: failure()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WORKFLOW_FILE: process-signups.yml
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+        run: python check_failure_streak.py

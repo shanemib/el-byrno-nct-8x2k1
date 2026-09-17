@@ -23,11 +23,15 @@ ENVIRONMENT VARIABLES (set as GitHub Actions secrets):
     RESEND_FROM         - the verified sender address, e.g. "NCT Alerts <alerts@yourdomain.com>"
 """
 
+import base64
+import mimetypes
 import os
 import smtplib
 import time
+from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email import encoders
 
 import requests
 
@@ -40,8 +44,36 @@ RESEND_FROM = os.environ.get("RESEND_FROM", "")
 RESEND_API_URL = "https://api.resend.com/emails"
 
 
-def _send_via_gmail(to: str, subject: str, html: str, text: str | None = None, unsubscribe_url: str | None = None) -> bool:
-    msg = MIMEMultipart("alternative")
+def _attach_files(msg: MIMEMultipart, attachment_paths: list[str]):
+    """Best-effort file attachments — a missing/unreadable file just gets
+    skipped with a log line rather than losing the whole email over it."""
+    for path in attachment_paths:
+        try:
+            with open(path, "rb") as f:
+                content = f.read()
+        except OSError as e:
+            print(f"[email] skipping attachment {path}: {e}")
+            continue
+        mime_type, _ = mimetypes.guess_type(path)
+        maintype, subtype = (mime_type or "application/octet-stream").split("/", 1)
+        part = MIMEBase(maintype, subtype)
+        part.set_payload(content)
+        encoders.encode_base64(part)
+        part.add_header(
+            "Content-Disposition", "attachment", filename=os.path.basename(path)
+        )
+        msg.attach(part)
+
+
+def _send_via_gmail(
+    to: str,
+    subject: str,
+    html: str,
+    text: str | None = None,
+    unsubscribe_url: str | None = None,
+    attachment_paths: list[str] | None = None,
+) -> bool:
+    msg = MIMEMultipart("mixed" if attachment_paths else "alternative")
     msg["Subject"] = subject
     # A friendly display name (rather than a bare address) is a small but
     # real signal to spam filters that this is an identifiable sender rather
@@ -62,9 +94,23 @@ def _send_via_gmail(to: str, subject: str, html: str, text: str | None = None, u
         # confirm-before-you-unsubscribe page a person clicking the link
         # in the email body would get anyway.
         msg["List-Unsubscribe"] = f"<{unsubscribe_url}>"
-    if text:
-        msg.attach(MIMEText(text, "plain"))
-    msg.attach(MIMEText(html, "html"))
+
+    if attachment_paths:
+        # With attachments the top-level message has to be "mixed" (body +
+        # files as sibling parts), so the text/html pair needs its own
+        # nested "alternative" part — attaching them straight to a "mixed"
+        # message would make some mail clients show the plain-text version
+        # as a second attachment instead of picking one to display.
+        body = MIMEMultipart("alternative")
+        if text:
+            body.attach(MIMEText(text, "plain"))
+        body.attach(MIMEText(html, "html"))
+        msg.attach(body)
+        _attach_files(msg, attachment_paths)
+    else:
+        if text:
+            msg.attach(MIMEText(text, "plain"))
+        msg.attach(MIMEText(html, "html"))
 
     # Sending from GitHub Actions means a different, unfamiliar IP almost
     # every run (shared cloud runners, no fixed address) — Gmail sometimes
@@ -87,7 +133,14 @@ def _send_via_gmail(to: str, subject: str, html: str, text: str | None = None, u
     return False
 
 
-def _send_via_resend(to: str, subject: str, html: str, text: str | None = None, unsubscribe_url: str | None = None) -> bool:
+def _send_via_resend(
+    to: str,
+    subject: str,
+    html: str,
+    text: str | None = None,
+    unsubscribe_url: str | None = None,
+    attachment_paths: list[str] | None = None,
+) -> bool:
     payload = {
         "from": RESEND_FROM,
         "to": [to],
@@ -98,6 +151,21 @@ def _send_via_resend(to: str, subject: str, html: str, text: str | None = None, 
         payload["text"] = text
     if unsubscribe_url:
         payload["headers"] = {"List-Unsubscribe": f"<{unsubscribe_url}>"}
+    if attachment_paths:
+        attachments = []
+        for path in attachment_paths:
+            try:
+                with open(path, "rb") as f:
+                    content = f.read()
+            except OSError as e:
+                print(f"[email] skipping attachment {path}: {e}")
+                continue
+            attachments.append({
+                "filename": os.path.basename(path),
+                "content": base64.b64encode(content).decode("ascii"),
+            })
+        if attachments:
+            payload["attachments"] = attachments
 
     try:
         resp = requests.post(
@@ -115,16 +183,26 @@ def _send_via_resend(to: str, subject: str, html: str, text: str | None = None, 
         return False
 
 
-def send_email(to: str, subject: str, html: str, text: str | None = None, unsubscribe_url: str | None = None) -> bool:
+def send_email(
+    to: str,
+    subject: str,
+    html: str,
+    text: str | None = None,
+    unsubscribe_url: str | None = None,
+    attachment_paths: list[str] | None = None,
+) -> bool:
     """Send one email via whichever provider is configured (Gmail preferred,
     then Resend). Returns True on success, False on failure (never raises —
     a single bad email address shouldn't crash a batch job). Pass
     unsubscribe_url to add a List-Unsubscribe header — every caller has one
-    on hand (the token is generated at signup), so there's no reason not to."""
+    on hand (the token is generated at signup), so there's no reason not to.
+    Pass attachment_paths (a list of local file paths) to attach files, e.g.
+    check_failure_streak.py attaching the failure screenshot — a missing or
+    unreadable path is skipped with a log line rather than failing the send."""
     if GMAIL_USER and GMAIL_APP_PASSWORD:
-        return _send_via_gmail(to, subject, html, text, unsubscribe_url)
+        return _send_via_gmail(to, subject, html, text, unsubscribe_url, attachment_paths)
     if RESEND_API_KEY and RESEND_FROM:
-        return _send_via_resend(to, subject, html, text, unsubscribe_url)
+        return _send_via_resend(to, subject, html, text, unsubscribe_url, attachment_paths)
     print(
         f"[email] neither GMAIL_USER/GMAIL_APP_PASSWORD nor RESEND_API_KEY/RESEND_FROM "
         f"is set — would have emailed {to}: {subject}"

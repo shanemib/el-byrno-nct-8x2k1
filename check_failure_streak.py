@@ -47,6 +47,22 @@ FAILURE_RATE_THRESHOLD = 0.3  # 30%
 
 API_URL = f"https://api.github.com/repos/{REPO}/actions/workflows/{WORKFLOW_FILE}/runs"
 
+# nct_checker.py's save_failure_debug() writes these into the repo root (the
+# same checkout this script runs from, in the same job) whenever the browser
+# flow fails partway through. They won't exist for every kind of failure —
+# e.g. a script that errors before the browser even opens — so everything
+# below treats their absence as normal, not an error.
+DEBUG_REASON_PATH = os.path.join(os.path.dirname(__file__), "debug_failure_reason.txt")
+DEBUG_SCREENSHOT_PATH = os.path.join(os.path.dirname(__file__), "debug_failure.png")
+
+
+def read_failure_reason() -> str | None:
+    try:
+        with open(DEBUG_REASON_PATH, encoding="utf-8") as f:
+            return f.read().strip()
+    except OSError:
+        return None
+
 
 def get_recent_conclusions(n: int) -> list[str]:
     """Newest-first list of conclusions ("success"/"failure"/...) for the
@@ -105,19 +121,40 @@ def main():
         reasons.append(f"{failure_rate:.0%} of the last {len(window)} runs failed")
     reason_text = " and ".join(reasons)
 
+    # The most recent failure's own error line and screenshot, if the
+    # browser flow got far enough to save one (see save_failure_debug() in
+    # nct_checker.py) — showing what actually broke, not just that
+    # something did, so you don't have to open the Actions log to see it.
+    failure_line = read_failure_reason()
+    attachment_paths = [DEBUG_SCREENSHOT_PATH] if os.path.exists(DEBUG_SCREENSHOT_PATH) else None
+
     actions_url = f"https://github.com/{REPO}/actions/workflows/{WORKFLOW_FILE}"
     subject = f"NCT checker: {reason_text}"
-    body_text = (
-        f"'{WORKFLOW_FILE}' has failed enough times in a row to be worth a look: "
-        f"{reason_text}.\n\nActions history: {actions_url}"
-    )
-    body_html = (
+    body_text_parts = [
+        f"'{WORKFLOW_FILE}' has failed enough times in a row to be worth a look: {reason_text}."
+    ]
+    body_html_parts = [
         f"<p>'{WORKFLOW_FILE}' has failed enough times to be worth a look: "
         f"<strong>{reason_text}</strong>.</p>"
-        f"<p><a href=\"{actions_url}\">View the Actions history</a></p>"
-    )
+    ]
+    if failure_line:
+        body_text_parts.append(f"\nMost recent error:\n{failure_line}")
+        body_html_parts.append(
+            f"<p>Most recent error:</p><pre style=\"white-space:pre-wrap;"
+            f"background:#f4f4f4;padding:10px;border-radius:6px;\">{failure_line}</pre>"
+        )
+    if attachment_paths:
+        body_html_parts.append("<p>Screenshot of the page at the moment it failed is attached.</p>")
+    body_text_parts.append(f"\nActions history: {actions_url}")
+    body_html_parts.append(f"<p><a href=\"{actions_url}\">View the Actions history</a></p>")
 
-    sent = send_email(to=GMAIL_USER, subject=subject, html=body_html, text=body_text)
+    sent = send_email(
+        to=GMAIL_USER,
+        subject=subject,
+        html="".join(body_html_parts),
+        text="\n".join(body_text_parts),
+        attachment_paths=attachment_paths,
+    )
     print(f"[failure-check] alert emailed={sent}")
 
 

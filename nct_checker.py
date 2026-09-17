@@ -533,16 +533,20 @@ def maybe_update_centres_file(all_centres: list[str]):
 
 DEBUG_SCREENSHOT_PATH = os.path.join(os.path.dirname(__file__), "debug_failure.png")
 DEBUG_HTML_PATH = os.path.join(os.path.dirname(__file__), "debug_failure.html")
+DEBUG_REASON_PATH = os.path.join(os.path.dirname(__file__), "debug_failure_reason.txt")
 
 
-async def save_failure_debug(page):
-    """On any failure partway through the browser flow, save a screenshot
-    and the full page HTML so a run that fails identically every time (but
-    can't be reproduced by hand — e.g. because ncts.ie treats GitHub's
-    datacenter IPs differently than an ordinary browser) can actually be
-    diagnosed from the workflow's uploaded artifacts, instead of guessing
-    from a bare timeout message. Never lets a debug-capture problem mask
-    the real error."""
+async def save_failure_debug(page, error: Exception | None = None):
+    """On any failure partway through the browser flow, save a screenshot,
+    the full page HTML, and (if given) the error message itself, so a run
+    that fails identically every time (but can't be reproduced by hand —
+    e.g. because ncts.ie treats GitHub's datacenter IPs differently than an
+    ordinary browser) can actually be diagnosed from the workflow's
+    uploaded artifacts, instead of guessing from a bare timeout message.
+    check_failure_streak.py reads the reason file and attaches the
+    screenshot when it emails you about a failure streak, so the alert
+    itself shows what broke rather than just that something did. Never
+    lets a debug-capture problem mask the real error."""
     try:
         await page.screenshot(path=DEBUG_SCREENSHOT_PATH, full_page=True)
     except Exception as e:
@@ -553,6 +557,12 @@ async def save_failure_debug(page):
             f.write(html)
     except Exception as e:
         print(f"[debug] failed to save failure HTML: {e}")
+    if error is not None:
+        try:
+            with open(DEBUG_REASON_PATH, "w", encoding="utf-8") as f:
+                f.write(f"{type(error).__name__}: {error}")
+        except Exception as e:
+            print(f"[debug] failed to save failure reason: {e}")
 
 
 async def main():
@@ -619,8 +629,8 @@ async def main():
                     for s in slots:
                         times_str = ", ".join(s["times"]) if s["times"] else "(times not read)"
                         report_lines.append(f"{centre}: {s['date']} — {times_str}")
-        except Exception:
-            await save_failure_debug(page)
+        except Exception as e:
+            await save_failure_debug(page, e)
             raise
         finally:
             await browser.close()
