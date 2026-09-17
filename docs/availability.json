@@ -1727,30 +1727,6 @@
         ]
       }
     ],
-    "Fonthill": [
-      {
-        "date": "Saturday 10th Oct",
-        "iso": "2026-10-10",
-        "times": [
-          "01:35"
-        ]
-      },
-      {
-        "date": "Sunday 11th Oct",
-        "iso": "2026-10-11",
-        "times": [
-          "00:05",
-          "00:15",
-          "00:25",
-          "00:35",
-          "00:45",
-          "00:55",
-          "01:05",
-          "01:15",
-          "01:25"
-        ]
-      }
-    ],
     "Galway": [
       {
         "date": "Friday 9th Oct",
@@ -2862,13 +2838,6 @@
       }
     ],
     "Portlaoise": [
-      {
-        "date": "Tuesday 6th Oct",
-        "iso": "2026-10-06",
-        "times": [
-          "15:15"
-        ]
-      },
       {
         "date": "Wednesday 7th Oct",
         "iso": "2026-10-07",
