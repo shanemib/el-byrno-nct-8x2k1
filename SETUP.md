@@ -482,3 +482,42 @@ The function treats an empty/missing secret as "verification not
 configured" and skips it, so signups keep working normally either way. To
 change the secret to a new value later, use the same `vault.update_secret`
 call with the new value instead of `''`.
+
+## Site analytics and all-time subscriber count
+
+Two small, unrelated additions that both answer "how's the site doing":
+
+**Page views — Cloudflare Web Analytics.** Free, cookieless, no account
+needed beyond the free Cloudflare account from the Turnstile section above
+(or a new one, if you skipped that). A beacon script is already added to
+every page in `docs/`, and `privacy.html`'s "Cookies and ads" section
+already describes it to visitors — nothing left to do in the code. If you
+ever need to recreate the beacon token (e.g. a new site or a rotated
+token):
+
+1. In the Cloudflare dashboard, go to **Analytics & Logs → Web Analytics →
+   Add a site**, and enter your site's hostname (e.g.
+   `shanemib.github.io` for the default GitHub Pages URL, or your custom
+   domain from Phase 2).
+2. Cloudflare shows a `<script>` snippet with a `data-cf-beacon` token in
+   it. Copy the token value.
+3. Replace the token in the existing `data-cf-beacon='{"token": "..."}'`
+   script tag near the bottom of each file in `docs/` (`index.html`,
+   `availability.html`, `stats.html`, `manage.html`, `verify.html`,
+   `unsubscribe.html`, `privacy.html`) with the new one.
+4. Give it a little while after publishing before checking the dashboard —
+   view counts don't appear instantly.
+
+**All-time subscriber count.** The `subscribers` table only ever shows
+*current* subscribers — `unsubscribe_subscriber` deletes a row outright, so
+anyone who ever unsubscribed disappears from that count with no trace. A
+separate `subscriber_history` table (append-only, never deleted from) now
+records every email the moment it's first confirmed, so there's a real
+lifetime total to point to. This needs the current `supabase_schema.sql`
+run once in the SQL Editor to take effect (it creates the table, backfills
+everyone already confirmed so far, and adds the
+`get_all_time_subscriber_count()` function) — after that it looks after
+itself, since `verify_subscriber` records into it automatically on every
+future confirmation. There's no UI for it yet; call
+`select get_all_time_subscriber_count();` in the SQL Editor whenever you
+want the number.
