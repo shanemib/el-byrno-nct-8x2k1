@@ -17,6 +17,21 @@
 
 create extension if not exists pgcrypto;
 
+-- pg_net: lets a Postgres function make outbound HTTP calls. Only used by
+-- signup_subscriber below, to verify a Cloudflare Turnstile token
+-- server-side (see SETUP.md "Bot protection"). Free on Supabase's free tier
+-- — extensions themselves aren't billed, and the call volume here is tiny
+-- (one request per signup attempt).
+create extension if not exists pg_net;
+
+-- supabase_vault: Supabase's built-in secure secret store. Used to hold the
+-- Turnstile secret key below — `alter database ... set app.settings...`
+-- looks tempting but Supabase's hosted Postgres doesn't grant the SQL
+-- Editor's role permission to set arbitrary database-level config
+-- ("permission denied to set parameter"), so Vault is the supported way to
+-- get a secret into a function without ever putting it in this file.
+create extension if not exists supabase_vault cascade;
+
 create table if not exists subscribers (
   id uuid primary key default gen_random_uuid(),
   email text not null,
@@ -95,13 +110,27 @@ create or replace function signup_subscriber(
   p_email text,
   p_centres text[],
   p_days_ahead int,
-  p_whatsapp_number text default null
+  p_whatsapp_number text default null,
+  p_turnstile_token text default null
 )
 returns void
 language plpgsql
 security definer
 set search_path = public
 as $$
+declare
+  -- Stored once, yourself, directly in the Supabase SQL Editor via Vault —
+  -- never put the real value in this file (it's public on GitHub):
+  --   select vault.create_secret('YOUR_SECRET_KEY', 'turnstile_secret_key');
+  -- Left unset (the default, before you've done Cloudflare setup — see
+  -- SETUP.md "Bot protection"), this comes back null and the whole check
+  -- below is skipped, so signups work normally either way. This function
+  -- runs security definer as its owner, so it can read vault.decrypted_secrets
+  -- even though the anon role calling it cannot.
+  v_turnstile_secret text;
+  v_request_id bigint;
+  v_verify_response jsonb;
+  v_waited numeric := 0;
 begin
   if p_email is null or p_email !~ '^[^@\s]+@[^@\s]+\.[^@\s]+$' then
     raise exception 'Please enter a valid email address';
@@ -116,6 +145,42 @@ begin
     raise exception 'WhatsApp number must be in international format, e.g. +353871234567';
   end if;
 
+  select decrypted_secret into v_turnstile_secret
+  from vault.decrypted_secrets
+  where name = 'turnstile_secret_key'
+  limit 1;
+
+  if v_turnstile_secret is not null and v_turnstile_secret <> '' then
+    if p_turnstile_token is null or p_turnstile_token = '' then
+      raise exception 'Please complete the verification check and try again';
+    end if;
+
+    select net.http_post(
+      url := 'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+      body := jsonb_build_object('secret', v_turnstile_secret, 'response', p_turnstile_token),
+      headers := '{"Content-Type": "application/json"}'::jsonb
+    ) into v_request_id;
+
+    -- pg_net calls are async — the actual HTTP request runs in a background
+    -- worker and its result lands in net._http_response once done. Poll
+    -- briefly rather than blocking indefinitely: a slow or unreachable
+    -- Cloudflare endpoint should fail the signup after a few seconds, not
+    -- hang the request forever.
+    loop
+      select response_body::jsonb into v_verify_response
+      from net._http_response
+      where id = v_request_id;
+
+      exit when v_verify_response is not null or v_waited >= 5;
+      perform pg_sleep(0.2);
+      v_waited := v_waited + 0.2;
+    end loop;
+
+    if not coalesce((v_verify_response ->> 'success')::boolean, false) then
+      raise exception 'Verification failed — please refresh the page and try again';
+    end if;
+  end if;
+
   -- If this email already has a signup — confirmed or not (e.g. they made a
   -- typo and resubmitted, or a friend forgot they'd already signed up and
   -- filled the form in again) — replace it rather than ending up with two
@@ -128,8 +193,8 @@ begin
 end;
 $$;
 
-revoke all on function signup_subscriber(text, text[], int, text) from public;
-grant execute on function signup_subscriber(text, text[], int, text) to anon;
+revoke all on function signup_subscriber(text, text[], int, text, text) from public;
+grant execute on function signup_subscriber(text, text[], int, text, text) to anon;
 
 -- ---------------------------------------------------------------------------
 -- verify_subscriber: called by verify.html when someone clicks their email link.

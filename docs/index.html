@@ -21,6 +21,12 @@
   <title>NCT Appointment Alerts</title>
   <link rel="stylesheet" href="./style.css" />
 
+  <!-- Cloudflare Turnstile: invisible/low-friction bot check on the signup
+       form below. Free (see SETUP.md "Bot protection"). Loads async so it
+       never blocks the page; the widget itself is a no-op until a real
+       data-sitekey is set on the div further down. -->
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -155,6 +161,14 @@
             <label for="companyWebsite">Company website</label>
             <input type="text" id="companyWebsite" name="companyWebsite" tabindex="-1" autocomplete="off" />
           </div>
+
+          <!-- Cloudflare Turnstile widget. data-sitekey is a PUBLIC key, safe
+               to commit here (the secret key lives only in Supabase — see
+               SETUP.md). Replace YOUR_TURNSTILE_SITE_KEY once you have one;
+               until then Turnstile just renders nothing and the signup
+               function skips verification entirely, so the form keeps
+               working normally. -->
+          <div class="cf-turnstile" data-sitekey="0x4AAAAAAE6PxPSysXiSIWEW"></div>
 
           <button type="submit">Sign up for alerts</button>
           <p class="privacy-note">🔒 Used only to send your alerts. No spam, unsubscribe any time.</p>

@@ -411,3 +411,64 @@ one workflow (nothing else, since it's scoped to just this repo and just
 Actions). If you ever need to revoke it, delete it from **Settings →
 Developer settings → Personal access tokens** and generate a new one to
 paste into cron-job.org.
+
+## Bot protection (Cloudflare Turnstile)
+
+The signup form already has a honeypot field, which stops unsophisticated
+bots. Cloudflare Turnstile adds a proper, free, mostly-invisible bot check
+on top of that for when the site is public and gets bot traffic worth
+stopping. It's entirely optional — until you set it up, the code just skips
+it and the form works exactly as before.
+
+The code for this (the widget on the form, and server-side verification in
+`signup_subscriber`) is already in place. All that's left is creating a
+free Cloudflare account and generating your own site key and secret key —
+that's an account-creation step only you can do, so here's exactly what to
+click:
+
+1. Go to [dash.cloudflare.com/sign-up](https://dash.cloudflare.com/sign-up)
+   and create a free account (just an email + password — no domain or
+   credit card needed for Turnstile).
+2. Once logged in, find **Turnstile** in the left sidebar (under "Security"
+   or via the search bar).
+3. Click **Add a site**, give it any label (e.g. "NCT Alerts"), and for
+   **Domain** enter the domain your site is actually hosted on (your
+   `github.io` address, or your custom domain from Phase 2). Leave the
+   widget mode as the default ("Managed").
+4. Click **Create**. Cloudflare shows you two values:
+   - **Site Key** — safe to be public.
+   - **Secret Key** — keep this one private.
+5. In `docs/index.html`, find the line:
+   ```html
+   <div class="cf-turnstile" data-sitekey="YOUR_TURNSTILE_SITE_KEY"></div>
+   ```
+   and replace `YOUR_TURNSTILE_SITE_KEY` with your real Site Key.
+6. In your Supabase project's **SQL Editor**, run this once (with your real
+   Secret Key in place of the placeholder) — **never** put the secret key in
+   `supabase_schema.sql` or anywhere else in the repo, since that file is
+   public on GitHub. This uses Supabase Vault, its built-in secret store —
+   an earlier version of this guide suggested `alter database ... set`
+   instead, but Supabase's hosted SQL Editor doesn't have permission to set
+   database-level config that way ("permission denied to set parameter"),
+   so Vault is the supported route:
+   ```sql
+   select vault.create_secret('YOUR_TURNSTILE_SECRET_KEY', 'turnstile_secret_key');
+   ```
+7. Re-run the rest of `supabase_schema.sql` in the SQL Editor too (the whole
+   file, not just the line above) so the updated `signup_subscriber`
+   function — the one that actually checks the Turnstile token — replaces
+   the old one.
+8. That's it — the next signup attempt on the live site will require passing
+   the Turnstile check before `signup_subscriber` will insert the row.
+
+If you ever want to turn it back off, find the secret's id and clear it:
+```sql
+select vault.update_secret(
+  (select id from vault.decrypted_secrets where name = 'turnstile_secret_key'),
+  ''
+);
+```
+The function treats an empty/missing secret as "verification not
+configured" and skips it, so signups keep working normally either way. To
+change the secret to a new value later, use the same `vault.update_secret`
+call with the new value instead of `''`.

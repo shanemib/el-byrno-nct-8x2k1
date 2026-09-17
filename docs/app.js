@@ -335,6 +335,15 @@ function initSignupForm() {
       return;
     }
 
+    // Present only once a real site key is set in index.html — turnstile.js
+    // adds this hidden input itself once the widget renders. Until then
+    // (site key still the YOUR_TURNSTILE_SITE_KEY placeholder), there's no
+    // widget and this stays null, which signup_subscriber treats as "bot
+    // check not configured yet" and skips verification, so the form keeps
+    // working exactly as before.
+    const turnstileTokenEl = form.querySelector('[name="cf-turnstile-response"]');
+    const turnstileToken = turnstileTokenEl ? turnstileTokenEl.value : null;
+
     submitBtn.disabled = true;
     submitBtn.textContent = "Signing up...";
 
@@ -344,6 +353,7 @@ function initSignupForm() {
         p_centres: centres,
         p_days_ahead: daysAhead,
         p_whatsapp_number: whatsapp || null,
+        p_turnstile_token: turnstileToken || null,
       });
       showStatus(
         statusEl,
@@ -352,8 +362,10 @@ function initSignupForm() {
       );
       form.reset();
       updateSelectedCount(document.getElementById("centreGrid"));
+      if (window.turnstile) window.turnstile.reset();
     } catch (err) {
       showStatus(statusEl, err.message, "error");
+      if (window.turnstile) window.turnstile.reset();
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = "Sign up for alerts";
