@@ -167,7 +167,7 @@ begin
     -- Cloudflare endpoint should fail the signup after a few seconds, not
     -- hang the request forever.
     loop
-      select response_body::jsonb into v_verify_response
+      select content::jsonb into v_verify_response
       from net._http_response
       where id = v_request_id;
 

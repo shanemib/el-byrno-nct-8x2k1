@@ -99,6 +99,8 @@ function prettifyError(message) {
     "days_ahead must be",
     "weeks_ahead must be",
     "WhatsApp number must be",
+    "Please complete the verification check",
+    "Verification failed",
   ];
   if (knownPrefixes.some((p) => message && message.startsWith(p))) {
     return message;
