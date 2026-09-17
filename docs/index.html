@@ -23,8 +23,9 @@
 
   <!-- Cloudflare Turnstile: invisible/low-friction bot check on the signup
        form below. Free (see SETUP.md "Bot protection"). Loads async so it
-       never blocks the page; the widget itself is a no-op until a real
-       data-sitekey is set on the div further down. -->
+       never blocks the page; if the div's data-sitekey further down is ever
+       reset to a placeholder, the widget is a harmless no-op instead of an
+       error. -->
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
   <script type="application/ld+json">
@@ -164,10 +165,10 @@
 
           <!-- Cloudflare Turnstile widget. data-sitekey is a PUBLIC key, safe
                to commit here (the secret key lives only in Supabase — see
-               SETUP.md). Replace YOUR_TURNSTILE_SITE_KEY once you have one;
-               until then Turnstile just renders nothing and the signup
-               function skips verification entirely, so the form keeps
-               working normally. -->
+               SETUP.md). If this is ever reset to a placeholder value,
+               Turnstile just renders nothing and signup_subscriber skips
+               verification entirely (see its comments in
+               supabase_schema.sql), so the form keeps working either way. -->
           <div class="cf-turnstile" data-sitekey="0x4AAAAAAE6PxPSysXiSIWEW"></div>
 
           <button type="submit">Sign up for alerts</button>

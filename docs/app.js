@@ -337,12 +337,11 @@ function initSignupForm() {
       return;
     }
 
-    // Present only once a real site key is set in index.html — turnstile.js
-    // adds this hidden input itself once the widget renders. Until then
-    // (site key still the YOUR_TURNSTILE_SITE_KEY placeholder), there's no
-    // widget and this stays null, which signup_subscriber treats as "bot
-    // check not configured yet" and skips verification, so the form keeps
-    // working exactly as before.
+    // turnstile.js adds this hidden input itself once the widget renders
+    // (see the data-sitekey div in index.html). If Turnstile isn't
+    // configured there — no widget ever renders — this stays null, which
+    // signup_subscriber treats as "bot check not configured" and skips
+    // verification, so the form keeps working either way.
     const turnstileTokenEl = form.querySelector('[name="cf-turnstile-response"]');
     const turnstileToken = turnstileTokenEl ? turnstileTokenEl.value : null;
 
