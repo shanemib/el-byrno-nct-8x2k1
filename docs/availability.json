@@ -318,7 +318,6 @@
         "date": "Friday 2nd Oct",
         "iso": "2026-10-02",
         "times": [
-          "08:45",
           "08:55"
         ]
       }
@@ -750,13 +749,6 @@
     ],
     "Dundalk": [
       {
-        "date": "Monday 28th Sept",
-        "iso": "2026-09-28",
-        "times": [
-          "14:25"
-        ]
-      },
-      {
         "date": "Tuesday 6th Oct",
         "iso": "2026-10-06",
         "times": [
@@ -1086,6 +1078,13 @@
       }
     ],
     "Kells": [
+      {
+        "date": "Tuesday 29th Sept",
+        "iso": "2026-09-29",
+        "times": [
+          "18:30"
+        ]
+      },
       {
         "date": "Thursday 8th Oct",
         "iso": "2026-10-08",
