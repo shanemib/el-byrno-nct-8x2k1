@@ -1537,6 +1537,13 @@
     ],
     "Naas": [
       {
+        "date": "Friday 2nd Oct",
+        "iso": "2026-10-02",
+        "times": [
+          "13:45"
+        ]
+      },
+      {
         "date": "Thursday 8th Oct",
         "iso": "2026-10-08",
         "times": [
@@ -1562,15 +1569,6 @@
           "07:00",
           "16:35",
           "19:35"
-        ]
-      }
-    ],
-    "Northpoint 2 (Exit 4, M50)": [
-      {
-        "date": "Friday 18th Sept",
-        "iso": "2026-09-18",
-        "times": [
-          "09:00"
         ]
       }
     ],
