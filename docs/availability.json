@@ -2164,6 +2164,15 @@
         ]
       }
     ],
+    "Fonthill": [
+      {
+        "date": "Tuesday 29th Sept",
+        "iso": "2026-09-29",
+        "times": [
+          "08:15"
+        ]
+      }
+    ],
     "Galway": [
       {
         "date": "Wednesday 14th Oct",
@@ -2910,7 +2919,6 @@
         "date": "Monday 28th Sept",
         "iso": "2026-09-28",
         "times": [
-          "07:55",
           "08:55",
           "12:45",
           "14:05",
