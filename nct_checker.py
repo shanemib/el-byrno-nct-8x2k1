@@ -154,6 +154,36 @@ class VehicleNotFoundError(Exception):
         super().__init__(f"ncts.ie has no record of registration {reg!r}")
 
 
+class ExistingBookingError(Exception):
+    """Raised when ncts.ie sends us to its 'What would you like to do?'
+    reschedule/cancel page instead of the real booking flow — this happens
+    when the registration already has an NCT appointment booked, and used
+    to blow up the whole run with a confusing 'could not find the Select
+    Station dropdown' error from get_all_centre_names() further down the
+    line. Like VehicleNotFoundError, this is a real, permanent-for-this-run
+    outcome for that specific reg (not a transient fluke worth retrying),
+    so main() falls back to a different registration from NCT_REGS when one
+    is available, rather than failing the whole run over one booked reg."""
+
+    def __init__(self, reg: str):
+        self.reg = reg
+        super().__init__(
+            f"registration {reg!r} already has an NCT appointment booked "
+            "(ncts.ie showed the reschedule/cancel page instead)"
+        )
+
+
+async def has_existing_booking(page) -> bool:
+    """True if the page we landed on after searching is ncts.ie's
+    reschedule/cancel page ('What would you like to do?' with RESCHEDULE
+    BOOKING / CANCEL BOOKING buttons) rather than the real booking-flow
+    results page. Checked right after run_flow() succeeds, before anything
+    tries to read the centre dropdown."""
+    return bool(
+        await page.get_by_text(re.compile(r"what would you like to do", re.IGNORECASE)).count()
+    )
+
+
 async def _search_vehicle_once(page, reg: str):
     """One attempt at the reg search. Returns True if it got past the
     homepage, False if it silently bounced back to it. Raises
@@ -595,8 +625,10 @@ async def main():
             for i, candidate_reg in enumerate(regs_to_try):
                 try:
                     await run_flow(page, candidate_reg)
+                    if await has_existing_booking(page):
+                        raise ExistingBookingError(candidate_reg)
                     break
-                except VehicleNotFoundError as e:
+                except (VehicleNotFoundError, ExistingBookingError) as e:
                     remaining = regs_to_try[i + 1:]
                     if not remaining:
                         raise
