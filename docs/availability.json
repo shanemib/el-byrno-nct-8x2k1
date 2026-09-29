@@ -7074,13 +7074,6 @@
     ],
     "Fonthill": [
       {
-        "date": "Saturday 3rd Oct",
-        "iso": "2026-10-03",
-        "times": [
-          "22:00"
-        ]
-      },
-      {
         "date": "Tuesday 6th Oct",
         "iso": "2026-10-06",
         "times": [
@@ -7463,13 +7456,6 @@
         ]
       },
       {
-        "date": "Wednesday 7th Oct",
-        "iso": "2026-10-07",
-        "times": [
-          "14:45"
-        ]
-      },
-      {
         "date": "Monday 19th Oct",
         "iso": "2026-10-19",
         "times": [
@@ -7727,13 +7713,6 @@
       }
     ],
     "Greenhills (Exit 11,M50)": [
-      {
-        "date": "Monday 5th Oct",
-        "iso": "2026-10-05",
-        "times": [
-          "08:35"
-        ]
-      },
       {
         "date": "Tuesday 6th Oct",
         "iso": "2026-10-06",
@@ -11551,7 +11530,6 @@
           "08:05",
           "08:35",
           "09:35",
-          "10:05",
           "10:25",
           "10:35",
           "11:05",
