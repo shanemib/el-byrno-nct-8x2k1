@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://shanemib.github.io/el-byrno-nct-8x2k1/</loc>
+    <loc>https://nctsalerts.ie/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://shanemib.github.io/el-byrno-nct-8x2k1/availability.html</loc>
+    <loc>https://nctsalerts.ie/availability.html</loc>
     <changefreq>hourly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://shanemib.github.io/el-byrno-nct-8x2k1/stats.html</loc>
+    <loc>https://nctsalerts.ie/stats.html</loc>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://shanemib.github.io/el-byrno-nct-8x2k1/privacy.html</loc>
+    <loc>https://nctsalerts.ie/privacy.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.2</priority>
   </url>
