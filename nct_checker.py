@@ -42,7 +42,7 @@ import asyncio
 from datetime import datetime, timedelta, timezone
 
 import requests
-from playwright.async_api import async_playwright
+from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 
 from supabase_utils import get_rows, patch_row, insert_rows
 from resend_utils import send_email
@@ -184,9 +184,17 @@ async def has_existing_booking(page) -> bool:
     )
 
 
+# How long to wait for the "Search Vehicle" button specifically (see the
+# wrong-page note in _search_vehicle_once below) — short on purpose, so that
+# case fails fast into a retry instead of burning Playwright's full default
+# 30s timeout on a button that's never going to appear.
+SEARCH_VEHICLE_CLICK_TIMEOUT_MS = 8000
+
+
 async def _search_vehicle_once(page, reg: str):
     """One attempt at the reg search. Returns True if it got past the
-    homepage, False if it silently bounced back to it. Raises
+    homepage, False if it should be retried (either a silent bounce back to
+    the homepage, or landing on the wrong page entirely — see below). Raises
     VehicleNotFoundError if ncts.ie explicitly said this registration isn't
     real — that's permanent for this reg, so retrying it again here would
     just fail identically (and previously ran on to hit a stale locator on
@@ -195,7 +203,23 @@ async def _search_vehicle_once(page, reg: str):
     reg_box = page.get_by_role("textbox", name="Enter Registration")
     await reg_box.click()
     await reg_box.fill(reg)
-    await page.get_by_role("button", name="Search Vehicle").click()
+
+    # ncts.ie has, at least once, served something other than the real
+    # booking homepage on the very first load of a run — observed as a
+    # "Payment By Link" page, which happens to share the same "Enter
+    # Registration" textbox (so the fill() above still succeeds) but has a
+    # "VALIDATE" button instead of "Search Vehicle". Left unguarded, that
+    # hangs for the full default timeout waiting for a button that will
+    # never appear, and the resulting TimeoutError isn't caught anywhere,
+    # so it takes the whole run down instead of being treated as just
+    # another bounce worth retrying. A short explicit timeout here turns
+    # that into an ordinary "retry" return instead.
+    try:
+        await page.get_by_role("button", name="Search Vehicle").click(timeout=SEARCH_VEHICLE_CLICK_TIMEOUT_MS)
+    except PlaywrightTimeoutError:
+        print("[search] 'Search Vehicle' button never appeared — not the real booking page this attempt")
+        return False
+
     await page.wait_for_load_state("networkidle")
 
     if await page.get_by_text(VEHICLE_NOT_FOUND_TEXT).count():
@@ -209,18 +233,25 @@ async def _search_vehicle_once(page, reg: str):
 
 async def run_flow(page, reg: str):
     """Step 1-2: enter reg, confirm vehicle, accept terms. (selectors verified via playwright codegen)"""
-    await page.goto(BASE_URL)
-    await dismiss_cookie_modal(page)
-
     for attempt in range(1, MAX_SEARCH_ATTEMPTS + 1):
+        # Load a fresh homepage before every attempt, not just the first.
+        # An ordinary silent bounce already leaves the site on a freshly
+        # rendered homepage by itself, so this is a harmless no-op for that
+        # case — but the wrong-page case above never bounces anywhere on
+        # its own (nothing was ever actually submitted), so without an
+        # explicit reload here a retry would just refill the same wrong
+        # page's box and time out identically, every attempt, until they
+        # ran out.
+        await page.goto(BASE_URL)
+        await dismiss_cookie_modal(page)
+
         if await _search_vehicle_once(page, reg):
             break
-        print(f"[search] attempt {attempt}/{MAX_SEARCH_ATTEMPTS} bounced back to the homepage — retrying...")
+        print(f"[search] attempt {attempt}/{MAX_SEARCH_ATTEMPTS} didn't reach the real booking flow — retrying...")
         if attempt == MAX_SEARCH_ATTEMPTS:
             raise RuntimeError(
-                f"Vehicle search kept bouncing back to the homepage after "
-                f"{MAX_SEARCH_ATTEMPTS} attempts — ncts.ie never actually let "
-                "the search through this run."
+                f"Vehicle search never actually reached the real booking flow after "
+                f"{MAX_SEARCH_ATTEMPTS} attempts this run."
             )
 
     await accept_voluntary_test_warning_if_present(page)
