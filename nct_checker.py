@@ -406,11 +406,55 @@ def fetch_verified_subscribers() -> list[dict]:
         "subscribers",
         {
             "verified": "eq.true",
-            "select": "id,email,centres,days_ahead,notified,unsubscribe_token,plan,whatsapp_number",
+            "select": "id,email,centres,days_ahead,notified,unsubscribe_token,plan,whatsapp_number,plan_expires_at",
         },
     )
     print(f"[subscribers] {len(rows)} verified subscriber(s)")
     return rows
+
+
+def _plan_still_current(sub: dict) -> bool:
+    """For an 'individual'/'garage' row: whether plan_expires_at (set by the
+    Stripe webhook) hasn't passed yet. A null plan_expires_at means it was
+    never set to begin with (shouldn't normally happen for these two plans,
+    but treat it as "not expired" rather than silently cutting someone off)."""
+    expires_at = sub.get("plan_expires_at")
+    if not expires_at:
+        return True
+    try:
+        exp = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    now = datetime.now(exp.tzinfo) if exp.tzinfo else datetime.now()
+    return exp > now
+
+
+def has_active_access(sub: dict) -> bool:
+    """Whether this subscriber should be alerted (by email) at all right now.
+    See the `plan` column comments in supabase_schema.sql for the full
+    taxonomy. 'free' and 'paid' are legacy rows from before paid tiers
+    existed and never expire; 'comp' (friends & family / garage trial codes)
+    never expires either. 'individual' and 'garage' are the real paid tiers
+    and are gated by plan_expires_at, set by the Stripe webhook."""
+    plan = sub.get("plan")
+    if plan in ("free", "paid", "comp"):
+        return True
+    if plan in ("individual", "garage"):
+        return _plan_still_current(sub)
+    return False
+
+
+def whatsapp_eligible(sub: dict) -> bool:
+    """Whether this subscriber also gets an instant WhatsApp alert alongside
+    the email, given they have a number on file. Deliberately excludes the
+    legacy 'free' plan — WhatsApp was always meant to be a paid-plan perk,
+    even for subscribers grandfathered in on free email alerts."""
+    plan = sub.get("plan")
+    if plan in ("paid", "comp"):
+        return True
+    if plan in ("individual", "garage"):
+        return _plan_still_current(sub)
+    return False
 
 
 def build_email_body(matches: list[dict], unsubscribe_link: str, manage_link: str) -> tuple[str, str]:
@@ -437,6 +481,12 @@ def notify_subscribers(results: dict, subscribers: list[dict]):
     now = datetime.now()
 
     for sub in subscribers:
+        if not has_active_access(sub):
+            # Lapsed individual/garage subscription — skip entirely (no email,
+            # no WhatsApp). Their row stays as-is so a renewal picks right
+            # back up; nothing here deletes or resets their preferences.
+            continue
+
         sub_centres = sub.get("centres") or []
         days_ahead = sub.get("days_ahead") or DEFAULT_DAYS_AHEAD
         sub_cutoff = now + timedelta(days=days_ahead)
@@ -486,10 +536,10 @@ def notify_subscribers(results: dict, subscribers: list[dict]):
             else:
                 print(f"[notify] {sub['email']}: email failed — will retry these matches next run")
 
-            # Paid plan also gets an instant WhatsApp alert alongside the email
+            # Paid plans also get an instant WhatsApp alert alongside the email
             # (email stays as the authoritative record for dedupe either way —
             # a failed WhatsApp send alone doesn't block marking as notified).
-            if sub.get("plan") == "paid" and sub.get("whatsapp_number"):
+            if whatsapp_eligible(sub) and sub.get("whatsapp_number"):
                 wa_sent = send_whatsapp_alert(sub["whatsapp_number"], matches)
                 print(f"[notify] {sub['email']}: whatsapp sent={wa_sent}")
 

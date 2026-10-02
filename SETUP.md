@@ -261,36 +261,116 @@ Once you're ready to message people who haven't manually joined a sandbox:
 3. You'll still need to flip subscribers to `plan = 'paid'` by hand (see
    Phase 1, step 8) until real billing exists — see below.
 
-## Future: paid tiers (self-serve billing)
+## Paid tiers (Stripe Managed Payments)
 
-The database already has what a paid tier needs to hook into later — a
-`plan` column (`free`/`paid`) and an `external_customer_id` column — so
-adding billing later won't reshape the data. The WhatsApp channel already
-reads `plan`, so once real payments exist, billing just has to flip that
-column — nothing about the notification logic changes.
+The site now charges for access via **Stripe Managed Payments** — Stripe
+itself acts as merchant of record for tax/VAT purposes, which keeps this a
+one-person operation without having to register for VAT OSS separately (see
+the note at the end of this section). Two plans, both covering email +
+instant WhatsApp alerts:
 
-When you're ready to stop doing that flip by hand and let people pay for it
-themselves, you'll need to decide between two shapes:
+- **Individual — €2.99 one-off.** Covers one search window; access expires
+  when that window's `days_ahead` is up (`plan = 'individual'`).
+- **Garage — €19/week, €49/month, or €499/year, recurring.** Unlimited
+  simultaneous watches while the subscription stays active
+  (`plan = 'garage'`). Several watches for the same garage share one Stripe
+  customer id (`external_customer_id`) so a renewal extends all of them at
+  once.
 
-- **Stripe directly** — lower fees (~1.5–2.9%), but you register for EU VAT
-  (via Revenue's VAT OSS scheme) and file it yourself as sales grow.
-- **A merchant of record** (Paddle, Lemon Squeezy) — they legally sell the
-  subscription as themselves and handle EU VAT for you, for a higher fee
-  (~5%+). Usually the simpler choice for a solo project.
+See the `plan` column comments at the top of `supabase_schema.sql` for the
+full state machine (`free`/`paid` are legacy/manual, `comp` is a one-time
+code — see "Comp codes" below — `individual`/`garage` are the real paid
+tiers).
 
-Either way, you'll need one new always-on piece this static-site setup
-doesn't have: a webhook endpoint the payment provider calls the moment
-someone pays or cancels, which updates that subscriber's `plan` in Supabase
-using the service-role key. GitHub Actions' schedule-based cron can't
-receive a webhook in real time, so a small serverless function (a free
-Cloudflare Worker is a good fit) is the piece to add at that point. None of
-that is built yet — it's intentionally left until you've decided on a
-provider and pricing.
+### How it fits together
+
+Unlike the rest of this project, billing needs one always-on piece that can
+react to events in real time — GitHub Actions' schedule-based cron can't
+receive a webhook. That piece is a small **Cloudflare Worker**
+(`cloudflare-worker/stripe-worker.js`), free on Cloudflare's tier, with two
+jobs:
+
+1. **`POST /create-checkout-session`** — called by the website
+   (`docs/app.js`) when someone picks a plan and clicks "Continue to
+   payment". Creates a Stripe Checkout Session (with `managed_payments`
+   enabled) and returns its URL for the browser to redirect to.
+2. **`POST /webhook`** — called by Stripe itself after a successful
+   payment. Verifies the request genuinely came from Stripe, then calls
+   `create_individual_subscriber` / `create_garage_watch` (on
+   `checkout.session.completed`) or `update_garage_subscription_expiry` (on
+   `invoice.paid`, which fires for the first invoice and every renewal) —
+   the same three service-role-only functions defined in
+   `supabase_schema.sql`. A cancelled subscription isn't specially
+   handled — access just lapses naturally once `plan_expires_at` passes.
+
+The Worker is a single plain-JavaScript file with no npm dependencies (it
+calls both Stripe's and Supabase's REST APIs directly with `fetch`), so it
+can be pasted straight into Cloudflare's dashboard editor — no build step,
+no `wrangler` CLI required.
+
+### Deploying the Worker
+
+1. In the Cloudflare dashboard, go to **Workers & Pages → Create → Create
+   Worker**, give it a name (e.g. `nct-stripe-worker`), and deploy the
+   default "Hello World" template.
+2. Open it, go to its **Quick edit** / code editor, delete the placeholder
+   code, and paste in the entire contents of
+   `cloudflare-worker/stripe-worker.js`. Save and deploy.
+3. Go to the Worker's **Settings → Variables and Secrets** and add:
+   | Name | Value | Type |
+   |---|---|---|
+   | `STRIPE_SECRET_KEY` | your live `sk_live_...` key | Secret |
+   | `STRIPE_WEBHOOK_SECRET` | from step 4 below | Secret |
+   | `SUPABASE_URL` | `https://xxxx.supabase.co` | Text |
+   | `SUPABASE_SERVICE_ROLE_KEY` | from Supabase project settings → API | Secret |
+   | `PRICE_INDIVIDUAL` | the Individual plan's Stripe Price ID | Text |
+   | `PRICE_GARAGE_WEEK` | the Garage weekly Price ID | Text |
+   | `PRICE_GARAGE_MONTH` | the Garage monthly Price ID | Text |
+   | `PRICE_GARAGE_YEAR` | the Garage yearly Price ID | Text |
+   | `SITE_URL` | `https://nctsalerts.ie` (no trailing slash) | Text |
+   | `ALLOWED_ORIGIN` | `https://nctsalerts.ie` | Text |
+
+   Mark the four marked **Secret** as encrypted — Cloudflare's "Secret"
+   variable type does this for you. These values are never entered by an AI
+   assistant on your behalf; type them in yourself.
+4. In the Stripe dashboard (live mode), go to **Developers → Webhooks → Add
+   endpoint**. Set the URL to `https://<your-worker>.workers.dev/webhook`
+   (copy the exact `*.workers.dev` URL Cloudflare gave the Worker in step
+   1–2), and subscribe it to exactly two events: `checkout.session.completed`
+   and `invoice.paid`. Save, then open the new endpoint's details and reveal
+   its **Signing secret** (`whsec_...`) — paste that into the Worker's
+   `STRIPE_WEBHOOK_SECRET` from step 3.
+5. In `docs/config.js`, set `CHECKOUT_WORKER_URL` to the same
+   `https://<your-worker>.workers.dev` base URL (no trailing path).
+6. Test with a real small payment (or Stripe's test mode first, pointing a
+   second webhook endpoint at a sandbox Worker/price set) before relying on
+   it — check the Worker's **Logs** tab in Cloudflare and the event's
+   delivery attempts under the Stripe webhook endpoint's page if something
+   doesn't create a subscriber row as expected.
+
+### Comp codes
+
+For friends & family (permanent free access) or a garage trial, insert a
+row into `comp_codes` yourself in the Supabase SQL Editor:
+
+```sql
+insert into comp_codes (code, label) values ('FAMILY2026', 'cousin Dave');
+-- or, for a code several people can redeem:
+insert into comp_codes (code, label, max_redemptions) values ('GARAGE-TRIAL', 'Joe''s Garage trial', 5);
+```
+
+Anyone who enters that code in the "Have a code?" field on the signup form
+gets `plan = 'comp'` (never expires) via `redeem_comp_code`, skipping
+payment entirely — same validation and Turnstile bot-check as a normal
+signup, still requires clicking the email confirmation link.
 
 I'm not an accountant or solicitor, so treat the above as a starting point,
 not advice — worth a short conversation with one before real money starts
-moving, especially around VAT registration and (separately) registering
-with Revenue as self-employed once this becomes a real income source.
+moving, especially around registering with Revenue as self-employed once
+this becomes a real income source. Managed Payments handling the merchant-
+of-record role is what currently avoids a separate EU VAT OSS registration,
+but that's Stripe's framing of the product, not a legal guarantee — worth
+confirming it still matches your situation as volume grows.
 
 ## How it all fits together
 
@@ -303,17 +383,23 @@ with Revenue as self-employed once this becomes a real income source.
   link to anyone who just signed up.
 - **`nct_checker.py`** — runs every 15 minutes: reads the live centre list, checks
   every centre for availability, matches results against every *confirmed*
-  subscriber's chosen centres and time window, and emails anyone with a new
-  match (plus WhatsApps `plan = 'paid'` subscribers via `whatsapp_utils.py`).
-  Also updates `docs/centres.json` if the site's centre list changes.
+  subscriber's chosen centres and time window, and emails anyone with active
+  access (see the `plan`/`plan_expires_at` eligibility logic near the top of
+  the file) — plus WhatsApps anyone eligible with a number on file, via
+  `whatsapp_utils.py`. Also updates `docs/centres.json` if the site's centre
+  list changes.
+- **`cloudflare-worker/stripe-worker.js`** — the always-on piece GitHub
+  Actions' schedule-based cron can't be: creates Stripe Checkout Sessions
+  and handles Stripe's payment webhook in real time. See "Paid tiers" above.
 - **Ads (once configured)** — `docs/config.js`'s `ADSENSE_CLIENT_ID` /
   `ADSENSE_SLOT_ID` control whether `app.js` loads the AdSense script at
   all; blank means no ad code runs.
-- **`plan` / `external_customer_id` / `plan_updated_at` / `whatsapp_number`**
-  on `subscribers` — `whatsapp_number` is collected from everyone at
-  signup; the rest is groundwork for a future paid tier. Nothing sets
-  `plan` to `'paid'` except you, by hand, in the SQL Editor — that's the
-  interim process until real billing exists.
+- **`plan` / `external_customer_id` / `plan_expires_at` / `plan_updated_at` /
+  `whatsapp_number`** on `subscribers` — see the `plan` comments in
+  `supabase_schema.sql` for the full picture. `plan`/`plan_expires_at` are
+  set automatically by the Stripe webhook for `individual`/`garage` rows;
+  `'free'`/`'paid'` are legacy/manual rows kept grandfathered in, and
+  `'comp'` comes from a redeemed comp code.
 
 ## Ongoing costs
 

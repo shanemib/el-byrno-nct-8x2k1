@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Free NCT appointment alerts for Ireland. Pick your test centres and time window — we check every NCT centre every 15 minutes and email you the moment a slot opens up." />
+  <meta name="description" content="NCT appointment alerts for Ireland, from €2.99. Pick your test centres and time window — we check every NCT centre every 15 minutes and email (or WhatsApp) you the moment a slot opens up." />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%230b6e4f'/%3E%3Cpath d='M30 52l14 14 26-30' stroke='white' stroke-width='9' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
   <link rel="manifest" href="./manifest.json" />
   <meta name="theme-color" content="#0b6e4f" />
@@ -63,6 +63,14 @@
           "@type": "Answer",
           "text": "No — you're only emailed when a new slot matching your centres and time window appears, and never emailed twice about the same one."
         }
+      },
+      {
+        "@type": "Question",
+        "name": "How much does it cost?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "€2.99 for a one-off search window, or from €19/week for unlimited watches if you're a garage checking on behalf of multiple customers. Both plans include email and instant WhatsApp alerts, paid securely through Stripe."
+        }
       }
     ]
   }
@@ -96,12 +104,12 @@
 
         <ol class="steps">
           <li><span class="step-num">1</span><div><strong>Choose your centres &amp; window</strong><br />Any number of centres, from 3 days out to 12 weeks.</div></li>
-          <li><span class="step-num">2</span><div><strong>Confirm your email</strong><br />One click on the link we send you — takes a few minutes.</div></li>
-          <li><span class="step-num">3</span><div><strong>Get alerted the moment a slot opens</strong><br />Checked every 15 minutes, straight from the real booking calendar.</div></li>
+          <li><span class="step-num">2</span><div><strong>Pick a plan &amp; pay securely</strong><br />Or redeem a code — either way, takes under a minute.</div></li>
+          <li><span class="step-num">3</span><div><strong>Get alerted the moment a slot opens</strong><br />Checked every 15 minutes, straight from the real booking calendar, by email and WhatsApp.</div></li>
         </ol>
 
         <p class="disclaimer">
-          Independent &amp; unofficial — not run by the NCTS. Free while it's in testing.
+          Independent &amp; unofficial — not run by the NCTS. Plans from €2.99.
         </p>
       </div>
 
@@ -145,12 +153,57 @@
             <p class="hint">Select as many as you like — you'll be emailed for any of them.</p>
           </div>
 
+          <div class="field">
+            <div class="centre-field-head">
+              <label>Choose your plan</label>
+            </div>
+            <div class="plan-options" id="planOptions">
+              <label class="plan-option" for="planIndividual">
+                <input type="radio" id="planIndividual" name="plan" value="individual" checked />
+                <span class="plan-name">Individual — €2.99</span>
+                <div class="plan-price">One-off. Covers this search until your window ends.</div>
+              </label>
+              <label class="plan-option" for="planGarage">
+                <input type="radio" id="planGarage" name="plan" value="garage" />
+                <span class="plan-name">Garage — from €19/wk</span>
+                <div class="plan-price">Unlimited watches, auto-renews. For garages &amp; frequent use.</div>
+              </label>
+            </div>
+
+            <div class="garage-interval-field" id="garageIntervalField" hidden>
+              <div class="interval-options">
+                <label class="interval-option" for="intervalWeek">
+                  <input type="radio" id="intervalWeek" name="interval" value="week" checked />
+                  Weekly — €19
+                </label>
+                <label class="interval-option" for="intervalMonth">
+                  <input type="radio" id="intervalMonth" name="interval" value="month" />
+                  Monthly — €49
+                </label>
+                <label class="interval-option" for="intervalYear">
+                  <input type="radio" id="intervalYear" name="interval" value="year" />
+                  Yearly — €499
+                </label>
+              </div>
+            </div>
+            <p class="hint">Both plans include email + instant WhatsApp alerts. You'll pay securely on the next step.</p>
+          </div>
+
+          <details class="code-field">
+            <summary>Have a code? <span class="hint-inline">(garage trial or friends &amp; family)</span></summary>
+            <div class="field" style="margin-top:12px;">
+              <label for="compCode">Code</label>
+              <input type="text" id="compCode" name="compCode" placeholder="e.g. FAMILY2026" autocomplete="off" />
+              <p class="hint">A valid code skips payment entirely — no card needed.</p>
+            </div>
+          </details>
+
           <details class="whatsapp-field">
-            <summary>Add a WhatsApp number <span class="hint-inline">(optional, for the upcoming paid plan)</span></summary>
+            <summary>Add a WhatsApp number <span class="hint-inline">(optional)</span></summary>
             <div class="field" style="margin-top:12px;">
               <label for="whatsapp">WhatsApp number</label>
               <input type="tel" id="whatsapp" name="whatsapp" placeholder="+353871234567" />
-              <p class="hint">Not used yet — email is free and covers everyone. This just saves your spot for when instant WhatsApp alerts launch as a paid perk.</p>
+              <p class="hint">Included with your plan — get an instant WhatsApp message the moment a slot opens, as well as the email.</p>
             </div>
           </details>
 
@@ -170,7 +223,7 @@
                supabase_schema.sql), so the form keeps working either way. -->
           <div class="cf-turnstile" data-sitekey="0x4AAAAAAE6PxPSysXiSIWEW"></div>
 
-          <button type="submit">Sign up for alerts</button>
+          <button type="submit" id="submitBtn">Continue to payment</button>
           <p class="privacy-note">🔒 Used only to send your alerts. No spam, unsubscribe any time.</p>
           <div class="status" id="status" role="status" aria-live="polite" aria-atomic="true"></div>
         </form>
@@ -218,6 +271,10 @@
         <div class="faq-item">
           <p class="faq-q">Will I get spammed with emails?</p>
           <p>No — you're only emailed when a new slot matching your centres and time window appears, and never emailed twice about the same one.</p>
+        </div>
+        <div class="faq-item">
+          <p class="faq-q">How much does it cost?</p>
+          <p>€2.99 for a one-off search window, or from €19/week for unlimited watches if you're a garage checking on behalf of multiple customers. Both plans include email and instant WhatsApp alerts, paid securely through Stripe.</p>
         </div>
       </div>
     </section>

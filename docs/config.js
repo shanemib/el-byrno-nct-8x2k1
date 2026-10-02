@@ -12,4 +12,11 @@ window.NCT_CONFIG = {
   // Ads only load when ADSENSE_CLIENT_ID is filled in (see SETUP.md "Set up ads").
   ADSENSE_CLIENT_ID: "",   // e.g. "ca-pub-1234567890123456"
   ADSENSE_SLOT_ID: "",     // e.g. "1234567890"
+
+  // The Cloudflare Worker that creates Stripe Checkout sessions for paid
+  // signups — see cloudflare-worker/stripe-worker.js and SETUP.md "Paid
+  // tiers". Safe to be public: it's just a URL, same as SUPABASE_URL above.
+  // Filled in once the Worker is deployed (its workers.dev URL, or a custom
+  // route if you set one up).
+  CHECKOUT_WORKER_URL: "https://nct-stripe-worker.REPLACE-WITH-YOUR-SUBDOMAIN.workers.dev",
 };

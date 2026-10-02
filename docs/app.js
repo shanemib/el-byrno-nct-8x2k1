@@ -101,6 +101,10 @@ function prettifyError(message) {
     "WhatsApp number must be",
     "Please complete the verification check",
     "Verification failed",
+    "Please enter a code",
+    "That code isn't valid",
+    "That code has expired",
+    "That code has already been used",
   ];
   if (knownPrefixes.some((p) => message && message.startsWith(p))) {
     return message;
@@ -284,15 +288,102 @@ async function loadCentres(preselected) {
   }
 }
 
+// Prices shown in the submit button label as the plan/interval/code choice
+// changes — purely cosmetic, the real amount charged always comes from the
+// Stripe Price actually attached to the Checkout Session server-side.
+const GARAGE_INTERVAL_PRICES = { week: "19", month: "49", year: "499" };
+const GARAGE_INTERVAL_LABELS = { week: "week", month: "month", year: "year" };
+
+function currentPlanChoice(form) {
+  const plan = form.querySelector('input[name="plan"]:checked')?.value || "individual";
+  const interval = form.querySelector('input[name="interval"]:checked')?.value || "week";
+  return { plan, interval };
+}
+
+function updatePlanOptionStyles(form) {
+  form.querySelectorAll(".plan-option").forEach((label) => {
+    const input = label.querySelector('input[name="plan"]');
+    label.classList.toggle("is-selected", !!input && input.checked);
+  });
+  form.querySelectorAll(".interval-option").forEach((label) => {
+    const input = label.querySelector('input[name="interval"]');
+    label.classList.toggle("is-selected", !!input && input.checked);
+  });
+}
+
+function updateSubmitLabel(form) {
+  const submitBtn = document.getElementById("submitBtn");
+  if (!submitBtn || submitBtn.disabled) return;
+  const compCode = document.getElementById("compCode").value.trim();
+  if (compCode) {
+    submitBtn.textContent = "Redeem code & sign up";
+    return;
+  }
+  const { plan, interval } = currentPlanChoice(form);
+  if (plan === "garage") {
+    submitBtn.textContent = `Continue to payment — €${GARAGE_INTERVAL_PRICES[interval]}/${GARAGE_INTERVAL_LABELS[interval]}`;
+  } else {
+    submitBtn.textContent = "Continue to payment — €2.99";
+  }
+}
+
+function initPlanSelector(form) {
+  const garageIntervalField = document.getElementById("garageIntervalField");
+
+  function onPlanChange() {
+    const { plan } = currentPlanChoice(form);
+    garageIntervalField.hidden = plan !== "garage";
+    updatePlanOptionStyles(form);
+    updateSubmitLabel(form);
+  }
+
+  form.querySelectorAll('input[name="plan"]').forEach((input) => {
+    input.addEventListener("change", onPlanChange);
+  });
+  form.querySelectorAll('input[name="interval"]').forEach((input) => {
+    input.addEventListener("change", () => {
+      updatePlanOptionStyles(form);
+      updateSubmitLabel(form);
+    });
+  });
+  document.getElementById("compCode").addEventListener("input", () => updateSubmitLabel(form));
+
+  onPlanChange();
+}
+
+async function startCheckout(workerUrl, payload) {
+  let resp;
+  try {
+    resp = await fetch(`${workerUrl}/create-checkout-session`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  } catch (e) {
+    throw new Error("Couldn't reach the payment server — check your connection and try again.");
+  }
+  let body = null;
+  try {
+    body = await resp.json();
+  } catch (e) {
+    // ignore — handled by the !resp.ok check below
+  }
+  if (!resp.ok || !body || !body.url) {
+    throw new Error((body && body.error) || "Something went wrong starting checkout — please try again.");
+  }
+  return body.url;
+}
+
 function initSignupForm() {
   const form = document.getElementById("signupForm");
   if (!form) return;
   const statusEl = document.getElementById("status");
-  const submitBtn = form.querySelector("button[type=submit]");
+  const submitBtn = document.getElementById("submitBtn");
   const formOpenedAt = Date.now();
 
   loadCentres();
   loadLastChecked();
+  initPlanSelector(form);
 
   // Small trust signal — only shows once there's a real number worth
   // mentioning, so a handful of early testers doesn't look sparse.
@@ -328,6 +419,7 @@ function initSignupForm() {
     const email = document.getElementById("email").value.trim();
     const whatsapp = document.getElementById("whatsapp").value.trim();
     const daysAhead = parseInt(document.getElementById("daysAhead").value, 10);
+    const compCode = document.getElementById("compCode").value.trim();
     const centres = Array.from(
       form.querySelectorAll('input[name="centre"]:checked')
     ).map((c) => c.value);
@@ -340,36 +432,63 @@ function initSignupForm() {
     // turnstile.js adds this hidden input itself once the widget renders
     // (see the data-sitekey div in index.html). If Turnstile isn't
     // configured there — no widget ever renders — this stays null, which
-    // signup_subscriber treats as "bot check not configured" and skips
-    // verification, so the form keeps working either way.
+    // signup_subscriber/redeem_comp_code treats as "bot check not
+    // configured" and skips verification, so the form keeps working either
+    // way. Only used on the comp-code path — the paid path's own payment
+    // step is a strong enough anti-bot signal on its own.
     const turnstileTokenEl = form.querySelector('[name="cf-turnstile-response"]');
     const turnstileToken = turnstileTokenEl ? turnstileTokenEl.value : null;
 
     submitBtn.disabled = true;
-    submitBtn.textContent = "Signing up...";
 
+    if (compCode) {
+      submitBtn.textContent = "Redeeming code...";
+      try {
+        await callRpc("redeem_comp_code", {
+          p_email: email,
+          p_centres: centres,
+          p_days_ahead: daysAhead,
+          p_code: compCode,
+          p_whatsapp_number: whatsapp || null,
+          p_turnstile_token: turnstileToken || null,
+        });
+        showStatus(
+          statusEl,
+          "Almost there — check your inbox for a confirmation email (usually within a few minutes).",
+          "success"
+        );
+        form.reset();
+        updateSelectedCount(document.getElementById("centreGrid"));
+        if (window.turnstile) window.turnstile.reset();
+      } catch (err) {
+        showStatus(statusEl, err.message, "error");
+        if (window.turnstile) window.turnstile.reset();
+      } finally {
+        submitBtn.disabled = false;
+        updateSubmitLabel(form);
+      }
+      return;
+    }
+
+    const { plan, interval } = currentPlanChoice(form);
+    submitBtn.textContent = "Redirecting to payment...";
     try {
-      await callRpc("signup_subscriber", {
-        p_email: email,
-        p_centres: centres,
-        p_days_ahead: daysAhead,
-        p_whatsapp_number: whatsapp || null,
-        p_turnstile_token: turnstileToken || null,
+      const { CHECKOUT_WORKER_URL } = window.NCT_CONFIG;
+      const url = await startCheckout(CHECKOUT_WORKER_URL, {
+        email,
+        plan,
+        interval,
+        centres,
+        days_ahead: daysAhead,
+        whatsapp_number: whatsapp || null,
       });
-      showStatus(
-        statusEl,
-        "Almost there — check your inbox for a confirmation email (usually within a few minutes).",
-        "success"
-      );
-      form.reset();
-      updateSelectedCount(document.getElementById("centreGrid"));
-      if (window.turnstile) window.turnstile.reset();
+      window.location.href = url;
+      // Deliberately leave the button disabled here — the page is about to
+      // navigate away to Stripe, so there's no "re-enable" moment.
     } catch (err) {
       showStatus(statusEl, err.message, "error");
-      if (window.turnstile) window.turnstile.reset();
-    } finally {
       submitBtn.disabled = false;
-      submitBtn.textContent = "Sign up for alerts";
+      updateSubmitLabel(form);
     }
   });
 }

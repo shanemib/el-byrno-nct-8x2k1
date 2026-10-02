@@ -292,21 +292,97 @@ select:focus {
 
 .hint-inline { font-weight: 400; color: var(--muted); }
 
-.whatsapp-field {
+.whatsapp-field,
+.code-field {
   margin-bottom: 22px;
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 10px 14px;
 }
 
-.whatsapp-field summary {
+.whatsapp-field summary,
+.code-field summary {
   cursor: pointer;
   font-weight: 600;
   font-size: 14px;
   color: var(--ink);
 }
 
-.whatsapp-field[open] summary { margin-bottom: 4px; }
+.whatsapp-field[open] summary,
+.code-field[open] summary { margin-bottom: 4px; }
+
+/* ---- Plan selector ---- */
+.plan-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
+}
+
+.plan-option {
+  display: block;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  font-weight: 400;
+}
+
+.plan-option:hover { background: #f0f2f0; }
+
+.plan-option.is-selected {
+  border-color: var(--green);
+  background: var(--green-pale);
+}
+
+.plan-option input[type="radio"] {
+  accent-color: var(--green);
+  margin-right: 6px;
+}
+
+.plan-option .plan-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.plan-option .plan-price {
+  font-size: 12.5px;
+  color: var(--muted);
+  margin: 2px 0 0 22px;
+}
+
+.garage-interval-field {
+  margin: 10px 0 0;
+}
+
+.interval-options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.interval-option {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.interval-option:hover { background: #f0f2f0; }
+
+.interval-option.is-selected {
+  border-color: var(--green);
+  background: var(--green-pale);
+  color: var(--green-dark);
+}
+
+.interval-option input[type="radio"] {
+  accent-color: var(--green);
+  margin-right: 5px;
+}
 
 button {
   appearance: none;
