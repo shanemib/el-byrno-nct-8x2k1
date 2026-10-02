@@ -404,7 +404,7 @@ function initSignupForm() {
     // Basic bot filtering: a hidden field real visitors never see or fill,
     // plus a minimum time-on-page — no CAPTCHA needed to catch the
     // unsophisticated form-filling bots this is mainly meant to deter.
-    const honeypot = document.getElementById("companyWebsite").value.trim();
+    const honeypot = document.getElementById("hpCheck").value.trim();
     const tooFast = Date.now() - formOpenedAt < 1500;
     if (honeypot || tooFast) {
       showStatus(

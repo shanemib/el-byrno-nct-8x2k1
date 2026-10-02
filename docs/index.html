@@ -190,10 +190,10 @@
           </div>
 
           <details class="code-field">
-            <summary>Have a code? <span class="hint-inline">(garage trial or friends &amp; family)</span></summary>
+            <summary>Have a code?</summary>
             <div class="field" style="margin-top:12px;">
               <label for="compCode">Code</label>
-              <input type="text" id="compCode" name="compCode" placeholder="e.g. FAMILY2026" autocomplete="off" />
+              <input type="text" id="compCode" name="compCode" placeholder="Enter code" autocomplete="off" />
               <p class="hint">A valid code skips payment entirely — no card needed.</p>
             </div>
           </details>
@@ -209,10 +209,20 @@
 
           <!-- Honeypot: invisible to real visitors, but a bot's form-filler
                will often fill every field it finds. If this has anything in
-               it on submit, we quietly drop the request. -->
+               it on submit, we quietly drop the request.
+
+               Deliberately NOT named/labelled anything that resembles a
+               real-world field (company, website, url, organization, name,
+               phone, address, ...) — browser autofill matches on exactly
+               those patterns and will silently fill a field like that from
+               the visitor's saved profile data even though it's hidden
+               on-screen (autofill works off the DOM, not what's rendered),
+               which was tripping this for real visitors and silently
+               dropping their actual signup/payment attempt. A nonsense
+               name/id avoids every autofill heuristic. -->
           <div class="hp-field" aria-hidden="true">
-            <label for="companyWebsite">Company website</label>
-            <input type="text" id="companyWebsite" name="companyWebsite" tabindex="-1" autocomplete="off" />
+            <label for="hpCheck">Leave this field blank</label>
+            <input type="text" id="hpCheck" name="hpCheck" tabindex="-1" autocomplete="off" />
           </div>
 
           <!-- Cloudflare Turnstile widget. data-sitekey is a PUBLIC key, safe
