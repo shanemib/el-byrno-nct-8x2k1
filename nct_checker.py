@@ -105,6 +105,33 @@ async def dismiss_cookie_modal(page):
         pass  # clicked it; if it's slow to animate away we still proceed
 
 
+async def dismiss_cookiebot_banner(page):
+    """ncts.ie switched its cookie-consent tool to Cookiebot ("Cookiebot by
+    Usercentrics") at some point after dismiss_cookie_modal above was
+    written for the previous bs-gdpr-cookies-modal — that old modal's accept
+    button no longer appears, so dismiss_cookie_modal is now a silent no-op
+    and this new banner is left sitting on screen, where it intercepts every
+    click underneath it. That's what broke the "Enter Registration" textbox
+    click with the GitHub Actions runs all showing the same "subtree
+    intercepts pointer events" retry loop until it timed out at 30s.
+
+    Handle it the same wait-then-click way as dismiss_cookie_modal: look for
+    Cookiebot's "Allow all" button (case-insensitive — its visible all-caps
+    "ALLOW ALL" is just CSS text-transform, the underlying accessible name
+    is normal case) and click it if it shows up. Anchored to match only
+    that button, not "Allow Selection" which also contains "allow"."""
+    allow_all_btn = page.get_by_role("button", name=re.compile(r"^allow all$", re.IGNORECASE))
+    try:
+        await allow_all_btn.wait_for(state="visible", timeout=6000)
+    except Exception:
+        return  # banner never appeared this run — nothing to dismiss
+    await allow_all_btn.click()
+    try:
+        await allow_all_btn.wait_for(state="hidden", timeout=6000)
+    except Exception:
+        pass  # clicked it; if it's slow to animate away we still proceed
+
+
 async def accept_voluntary_test_warning_if_present(page):
     """ncts.ie now shows an extra 'Voluntary Test Warning' interstitial for
     a vehicle that isn't due for its next NCT yet (ours currently isn't —
@@ -244,6 +271,7 @@ async def run_flow(page, reg: str):
         # ran out.
         await page.goto(BASE_URL)
         await dismiss_cookie_modal(page)
+        await dismiss_cookiebot_banner(page)
 
         if await _search_vehicle_once(page, reg):
             break
