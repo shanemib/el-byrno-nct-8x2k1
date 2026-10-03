@@ -5489,25 +5489,7 @@
         ]
       }
     ],
-    "Skibbereen": [
-      {
-        "date": "Monday 12th Oct",
-        "iso": "2026-10-12",
-        "times": [
-          "11:45"
-        ]
-      }
-    ],
     "Sligo": [
-      {
-        "date": "Monday 5th Oct",
-        "iso": "2026-10-05",
-        "times": [
-          "09:25",
-          "13:55",
-          "14:55"
-        ]
-      },
       {
         "date": "Wednesday 21st Oct",
         "iso": "2026-10-21",
