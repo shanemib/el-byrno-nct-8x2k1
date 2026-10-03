@@ -3334,6 +3334,13 @@
     ],
     "Fonthill": [
       {
+        "date": "Sunday 4th Oct",
+        "iso": "2026-10-04",
+        "times": [
+          "09:40"
+        ]
+      },
+      {
         "date": "Tuesday 6th Oct",
         "iso": "2026-10-06",
         "times": [
@@ -3374,15 +3381,33 @@
         "date": "Tuesday 6th Oct",
         "iso": "2026-10-06",
         "times": [
-          "09:55",
-          "14:10",
           "14:20",
-          "15:50",
           "18:40"
+        ]
+      },
+      {
+        "date": "Thursday 15th Oct",
+        "iso": "2026-10-15",
+        "times": [
+          "15:35"
+        ]
+      },
+      {
+        "date": "Monday 19th Oct",
+        "iso": "2026-10-19",
+        "times": [
+          "11:35"
         ]
       }
     ],
     "Kells": [
+      {
+        "date": "Tuesday 6th Oct",
+        "iso": "2026-10-06",
+        "times": [
+          "21:50"
+        ]
+      },
       {
         "date": "Friday 16th Oct",
         "iso": "2026-10-16",
