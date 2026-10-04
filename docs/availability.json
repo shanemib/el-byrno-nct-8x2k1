@@ -3,7 +3,7 @@
   "centres": {
     "Abbeyfeale": [
       {
-        "date": "Tuesday  6th Oct",
+        "date": "Tuesday 6th Oct",
         "iso": "2026-10-06",
         "times": [
           "08:35"
@@ -329,7 +329,6 @@
         "date": "Thursday 22nd Oct",
         "iso": "2026-10-22",
         "times": [
-          "20:40",
           "20:50"
         ]
       },
@@ -2029,7 +2028,6 @@
         "date": "Saturday 17th Oct",
         "iso": "2026-10-17",
         "times": [
-          "20:15",
           "20:25",
           "20:35",
           "20:45",
@@ -2723,15 +2721,7 @@
         "date": "Tuesday 6th Oct",
         "iso": "2026-10-06",
         "times": [
-          "08:25",
-          "11:55"
-        ]
-      },
-      {
-        "date": "Saturday 10th Oct",
-        "iso": "2026-10-10",
-        "times": [
-          "14:00"
+          "08:25"
         ]
       }
     ],
@@ -2741,6 +2731,7 @@
         "iso": "2026-10-04",
         "times": [
           "12:50",
+          "17:40",
           "19:00"
         ]
       },
@@ -3317,40 +3308,19 @@
         ]
       }
     ],
-    "Fonthill": [
+    "Galway": [
       {
-        "date": "Tuesday 6th Oct",
-        "iso": "2026-10-06",
+        "date": "Wednesday 7th Oct",
+        "iso": "2026-10-07",
         "times": [
-          "07:55",
-          "10:15",
-          "11:25",
-          "14:55"
+          "08:25"
         ]
       },
-      {
-        "date": "Tuesday 13th Oct",
-        "iso": "2026-10-13",
-        "times": [
-          "08:15"
-        ]
-      }
-    ],
-    "Galway": [
       {
         "date": "Friday 23rd Oct",
         "iso": "2026-10-23",
         "times": [
           "18:40"
-        ]
-      }
-    ],
-    "Greenhills (Exit 11,M50)": [
-      {
-        "date": "Thursday 15th Oct",
-        "iso": "2026-10-15",
-        "times": [
-          "15:35"
         ]
       }
     ],
@@ -3801,26 +3771,6 @@
         ]
       }
     ],
-    "Killarney": [
-      {
-        "date": "Tuesday 6th Oct",
-        "iso": "2026-10-06",
-        "times": [
-          "10:10",
-          "15:10",
-          "16:20",
-          "18:10",
-          "22:20"
-        ]
-      },
-      {
-        "date": "Saturday 17th Oct",
-        "iso": "2026-10-17",
-        "times": [
-          "20:10"
-        ]
-      }
-    ],
     "Letterkenny": [
       {
         "date": "Tuesday 6th Oct",
@@ -4104,14 +4054,19 @@
         ]
       }
     ],
-    "Longford": [
+    "Macroom": [
       {
         "date": "Tuesday 6th Oct",
         "iso": "2026-10-06",
         "times": [
-          "09:45",
-          "12:15",
-          "15:45"
+          "07:55",
+          "11:15",
+          "12:05",
+          "13:55",
+          "14:55",
+          "16:35",
+          "19:25",
+          "22:25"
         ]
       }
     ],
