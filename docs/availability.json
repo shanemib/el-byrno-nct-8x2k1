@@ -306,7 +306,6 @@
         "times": [
           "07:25",
           "10:25",
-          "13:55",
           "15:05",
           "16:35",
           "17:55",
@@ -424,14 +423,16 @@
         ]
       }
     ],
-    "Carlow": [
+    "Cahirciveen": [
       {
-        "date": "Sunday 4th Oct",
-        "iso": "2026-10-04",
+        "date": "Thursday 8th Oct",
+        "iso": "2026-10-08",
         "times": [
-          "02:45"
+          "14:20"
         ]
-      },
+      }
+    ],
+    "Carlow": [
       {
         "date": "Tuesday 6th Oct",
         "iso": "2026-10-06",
@@ -2369,7 +2370,6 @@
         "date": "Tuesday 6th Oct",
         "iso": "2026-10-06",
         "times": [
-          "15:45",
           "19:25",
           "21:05"
         ]
@@ -3313,13 +3313,6 @@
     ],
     "Fonthill": [
       {
-        "date": "Sunday 4th Oct",
-        "iso": "2026-10-04",
-        "times": [
-          "09:40"
-        ]
-      },
-      {
         "date": "Tuesday 6th Oct",
         "iso": "2026-10-06",
         "times": [
@@ -3335,13 +3328,6 @@
         "iso": "2026-10-20",
         "times": [
           "01:25"
-        ]
-      },
-      {
-        "date": "Sunday 25th Oct",
-        "iso": "2026-10-25",
-        "times": [
-          "01:15"
         ]
       }
     ],
@@ -4167,6 +4153,13 @@
       }
     ],
     "Naas": [
+      {
+        "date": "Monday 19th Oct",
+        "iso": "2026-10-19",
+        "times": [
+          "08:05"
+        ]
+      },
       {
         "date": "Tuesday 20th Oct",
         "iso": "2026-10-20",
