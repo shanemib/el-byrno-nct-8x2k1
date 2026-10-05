@@ -18,5 +18,5 @@ window.NCT_CONFIG = {
   // tiers". Safe to be public: it's just a URL, same as SUPABASE_URL above.
   // Filled in once the Worker is deployed (its workers.dev URL, or a custom
   // route if you set one up).
-  CHECKOUT_WORKER_URL: "https://nct-stripe-worker.REPLACE-WITH-YOUR-SUBDOMAIN.workers.dev",
+  CHECKOUT_WORKER_URL: "https://nct-stripe-worker.nctsalert.workers.dev",
 };

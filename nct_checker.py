@@ -115,21 +115,52 @@ async def dismiss_cookiebot_banner(page):
     click with the GitHub Actions runs all showing the same "subtree
     intercepts pointer events" retry loop until it timed out at 30s.
 
-    Handle it the same wait-then-click way as dismiss_cookie_modal: look for
-    Cookiebot's "Allow all" button (case-insensitive — its visible all-caps
-    "ALLOW ALL" is just CSS text-transform, the underlying accessible name
-    is normal case) and click it if it shows up. Anchored to match only
-    that button, not "Allow Selection" which also contains "allow"."""
-    allow_all_btn = page.get_by_role("button", name=re.compile(r"^allow all$", re.IGNORECASE))
+    A first attempt at this (matching get_by_role("button", name="Allow
+    all")) still didn't stop the failures — the run's own debug screenshot
+    showed the banner still sitting on screen at the moment it gave up, so
+    the role/name match itself was never reliably hitting Cookiebot's actual
+    button (different ncts.ie deploys have rendered it as a <button>, an
+    <a role="button">, and plain text with a click handler, and it isn't
+    worth re-deriving which one is live today just to have it drift again).
+
+    So this version doesn't bet the whole run on correctly guessing
+    Cookiebot's exact markup. It waits for the banner's container
+    (#CybotCookiebotDialog — Cookiebot's own fixed id, stable across all of
+    those markup variants) rather than one button inside it, tries clicking
+    "Allow all" by visible text regardless of what element it turned out to
+    be, and then — whether or not that click actually landed — verifies the
+    dialog is actually gone before moving on. If it isn't, it forcibly
+    removes the dialog and its backdrop from the page directly. This is a
+    probe bot reading public availability, not a real visitor whose consent
+    choice matters to ncts.ie, so skipping Cookiebot's own close animation
+    in the rare case the polite click didn't work is fine — what matters is
+    guaranteeing nothing is left intercepting clicks for the rest of the run."""
     try:
-        await allow_all_btn.wait_for(state="visible", timeout=6000)
+        await page.wait_for_selector("#CybotCookiebotDialog", state="visible", timeout=6000)
     except Exception:
         return  # banner never appeared this run — nothing to dismiss
-    await allow_all_btn.click()
+
     try:
-        await allow_all_btn.wait_for(state="hidden", timeout=6000)
+        allow_all = page.locator("#CybotCookiebotDialog").get_by_text(
+            re.compile(r"^allow all$", re.IGNORECASE)
+        )
+        await allow_all.first.click(timeout=3000)
     except Exception:
-        pass  # clicked it; if it's slow to animate away we still proceed
+        pass  # couldn't find/click it by text — the force-removal below still runs
+
+    try:
+        await page.wait_for_selector("#CybotCookiebotDialog", state="hidden", timeout=4000)
+    except Exception:
+        # Click didn't work, or Cookiebot is just slow to tear itself down —
+        # remove the dialog and its backdrop outright rather than risk it
+        # silently blocking every click for the rest of the run like before.
+        await page.evaluate(
+            """() => {
+                document.querySelectorAll(
+                    '#CybotCookiebotDialog, .CybotCookiebotDialogBodyUnderlay, #CookiebotWidget'
+                ).forEach(el => el.remove());
+            }"""
+        )
 
 
 async def accept_voluntary_test_warning_if_present(page):
