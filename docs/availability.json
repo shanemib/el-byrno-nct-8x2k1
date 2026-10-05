@@ -2096,7 +2096,6 @@
         "date": "Wednesday 7th Oct",
         "iso": "2026-10-07",
         "times": [
-          "07:25",
           "09:05",
           "14:10",
           "15:10",
@@ -2968,38 +2967,6 @@
         ]
       }
     ],
-    "Fonthill": [
-      {
-        "date": "Tuesday 13th Oct",
-        "iso": "2026-10-13",
-        "times": [
-          "08:55"
-        ]
-      },
-      {
-        "date": "Saturday 24th Oct",
-        "iso": "2026-10-24",
-        "times": [
-          "01:05"
-        ]
-      },
-      {
-        "date": "Sunday 25th Oct",
-        "iso": "2026-10-25",
-        "times": [
-          "01:15"
-        ]
-      }
-    ],
-    "Galway": [
-      {
-        "date": "Monday 12th Oct",
-        "iso": "2026-10-12",
-        "times": [
-          "14:55"
-        ]
-      }
-    ],
     "Greenhills (Exit 11,M50)": [
       {
         "date": "Wednesday 7th Oct",
@@ -3008,16 +2975,16 @@
           "16:35",
           "18:05"
         ]
+      },
+      {
+        "date": "Thursday 15th Oct",
+        "iso": "2026-10-15",
+        "times": [
+          "10:45"
+        ]
       }
     ],
     "Kells": [
-      {
-        "date": "Monday 5th Oct",
-        "iso": "2026-10-05",
-        "times": [
-          "07:35"
-        ]
-      },
       {
         "date": "Wednesday 7th Oct",
         "iso": "2026-10-07",
@@ -3389,13 +3356,6 @@
     ],
     "Letterkenny": [
       {
-        "date": "Monday 5th Oct",
-        "iso": "2026-10-05",
-        "times": [
-          "07:35"
-        ]
-      },
-      {
         "date": "Wednesday 7th Oct",
         "iso": "2026-10-07",
         "times": [
@@ -3585,39 +3545,7 @@
         ]
       }
     ],
-    "Macroom": [
-      {
-        "date": "Tuesday 20th Oct",
-        "iso": "2026-10-20",
-        "times": [
-          "13:45"
-        ]
-      }
-    ],
-    "Monaghan": [
-      {
-        "date": "Wednesday 7th Oct",
-        "iso": "2026-10-07",
-        "times": [
-          "07:55",
-          "09:45",
-          "12:35",
-          "13:55",
-          "15:15",
-          "16:55",
-          "19:45",
-          "21:25"
-        ]
-      }
-    ],
     "Naas": [
-      {
-        "date": "Monday 19th Oct",
-        "iso": "2026-10-19",
-        "times": [
-          "16:25"
-        ]
-      },
       {
         "date": "Wednesday 21st Oct",
         "iso": "2026-10-21",
@@ -3834,21 +3762,36 @@
         ]
       }
     ],
-    "Northpoint 1 (Exit 4, M50)": [
+    "Northpoint 2 (Exit 4, M50)": [
       {
         "date": "Wednesday 7th Oct",
         "iso": "2026-10-07",
         "times": [
-          "07:55",
-          "09:45",
-          "11:35",
-          "12:35",
+          "07:25",
+          "09:05",
+          "10:35",
           "13:55",
-          "14:25",
-          "15:15",
-          "16:55",
-          "17:55",
-          "21:35"
+          "16:35",
+          "18:10",
+          "19:40",
+          "22:20"
+        ]
+      },
+      {
+        "date": "Tuesday 13th Oct",
+        "iso": "2026-10-13",
+        "times": [
+          "22:10"
+        ]
+      }
+    ],
+    "Portlaoise": [
+      {
+        "date": "Wednesday 7th Oct",
+        "iso": "2026-10-07",
+        "times": [
+          "10:25",
+          "13:15"
         ]
       }
     ],
@@ -4001,25 +3944,6 @@
           "18:40",
           "20:10",
           "20:20"
-        ]
-      },
-      {
-        "date": "Thursday 15th Oct",
-        "iso": "2026-10-15",
-        "times": [
-          "11:00"
-        ]
-      }
-    ],
-    "Tullamore": [
-      {
-        "date": "Wednesday 7th Oct",
-        "iso": "2026-10-07",
-        "times": [
-          "08:15",
-          "10:25",
-          "13:15",
-          "17:25"
         ]
       }
     ],
