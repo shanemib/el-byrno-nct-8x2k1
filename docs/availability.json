@@ -540,13 +540,6 @@
     ],
     "Cahir": [
       {
-        "date": "Saturday 10th Oct",
-        "iso": "2026-10-10",
-        "times": [
-          "12:10"
-        ]
-      },
-      {
         "date": "Wednesday 21st Oct",
         "iso": "2026-10-21",
         "times": [
@@ -2052,7 +2045,6 @@
         "date": "Wednesday 7th Oct",
         "iso": "2026-10-07",
         "times": [
-          "08:15",
           "08:55"
         ]
       },
@@ -6246,13 +6238,6 @@
       }
     ],
     "Mullingar": [
-      {
-        "date": "Thursday 8th Oct",
-        "iso": "2026-10-08",
-        "times": [
-          "08:45"
-        ]
-      },
       {
         "date": "Thursday 29th Oct",
         "iso": "2026-10-29",
