@@ -263,6 +263,15 @@
         ]
       }
     ],
+    "Carrick-on-Shannon": [
+      {
+        "date": "Friday 30th Oct",
+        "iso": "2026-10-30",
+        "times": [
+          "10:45"
+        ]
+      }
+    ],
     "Castleisland": [
       {
         "date": "Thursday 22nd Oct",
@@ -591,7 +600,6 @@
           "10:50",
           "11:20",
           "12:10",
-          "12:20",
           "12:30",
           "12:40",
           "12:50",
@@ -760,7 +768,6 @@
         "date": "Sunday 25th Oct",
         "iso": "2026-10-25",
         "times": [
-          "16:00",
           "16:10",
           "17:00",
           "17:20",
@@ -1623,13 +1630,6 @@
     ],
     "Enniscorthy": [
       {
-        "date": "Tuesday 20th Oct",
-        "iso": "2026-10-20",
-        "times": [
-          "22:25"
-        ]
-      },
-      {
         "date": "Wednesday 21st Oct",
         "iso": "2026-10-21",
         "times": [
@@ -2085,7 +2085,6 @@
         "iso": "2026-10-31",
         "times": [
           "14:40",
-          "14:50",
           "16:30",
           "16:40",
           "17:00",
@@ -2136,15 +2135,6 @@
         ]
       }
     ],
-    "Northpoint 2 (Exit 4, M50)": [
-      {
-        "date": "Sunday 18th Oct",
-        "iso": "2026-10-18",
-        "times": [
-          "11:30"
-        ]
-      }
-    ],
     "Skibbereen": [
       {
         "date": "Monday 19th Oct",
@@ -2155,13 +2145,6 @@
       }
     ],
     "Youghal": [
-      {
-        "date": "Sunday 11th Oct",
-        "iso": "2026-10-11",
-        "times": [
-          "01:55"
-        ]
-      },
       {
         "date": "Monday 12th Oct",
         "iso": "2026-10-12",
