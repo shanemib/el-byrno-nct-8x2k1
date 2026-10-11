@@ -2278,6 +2278,27 @@
         ]
       }
     ],
+    "Northpoint 2 (Exit 4, M50)": [
+      {
+        "date": "Saturday 17th Oct",
+        "iso": "2026-10-17",
+        "times": [
+          "14:20"
+        ]
+      }
+    ],
+    "Portlaoise": [
+      {
+        "date": "Tuesday 13th Oct",
+        "iso": "2026-10-13",
+        "times": [
+          "13:10",
+          "15:05",
+          "19:05",
+          "21:35"
+        ]
+      }
+    ],
     "Sligo": [
       {
         "date": "Saturday 17th Oct",
@@ -2306,6 +2327,23 @@
         "iso": "2026-10-20",
         "times": [
           "22:20"
+        ]
+      }
+    ],
+    "Tullamore": [
+      {
+        "date": "Tuesday 13th Oct",
+        "iso": "2026-10-13",
+        "times": [
+          "15:05",
+          "21:05"
+        ]
+      },
+      {
+        "date": "Friday 30th Oct",
+        "iso": "2026-10-30",
+        "times": [
+          "17:50"
         ]
       }
     ],
