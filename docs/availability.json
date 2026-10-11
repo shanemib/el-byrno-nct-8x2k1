@@ -3,13 +3,6 @@
   "centres": {
     "Abbeyfeale": [
       {
-        "date": "Tuesday 20th Oct",
-        "iso": "2026-10-20",
-        "times": [
-          "22:25"
-        ]
-      },
-      {
         "date": "Thursday 29th Oct",
         "iso": "2026-10-29",
         "times": [
@@ -122,6 +115,15 @@
         ]
       }
     ],
+    "Arklow": [
+      {
+        "date": "Sunday 11th Oct",
+        "iso": "2026-10-11",
+        "times": [
+          "18:50"
+        ]
+      }
+    ],
     "Cahirciveen": [
       {
         "date": "Tuesday 13th Oct",
@@ -144,7 +146,6 @@
         "date": "Saturday 31st Oct",
         "iso": "2026-10-31",
         "times": [
-          "20:15",
           "20:45",
           "20:55",
           "21:15",
@@ -185,7 +186,6 @@
           "17:25",
           "17:55",
           "18:15",
-          "18:25",
           "20:50",
           "21:10",
           "21:20",
@@ -221,13 +221,6 @@
       }
     ],
     "Cavan": [
-      {
-        "date": "Wednesday 21st Oct",
-        "iso": "2026-10-21",
-        "times": [
-          "10:15"
-        ]
-      },
       {
         "date": "Thursday 22nd Oct",
         "iso": "2026-10-22",
@@ -586,13 +579,6 @@
       }
     ],
     "Charleville": [
-      {
-        "date": "Thursday 22nd Oct",
-        "iso": "2026-10-22",
-        "times": [
-          "16:05"
-        ]
-      },
       {
         "date": "Friday 23rd Oct",
         "iso": "2026-10-23",
@@ -1864,12 +1850,12 @@
         ]
       }
     ],
-    "Kilkenny": [
+    "Greenhills (Exit 11,M50)": [
       {
         "date": "Monday 12th Oct",
         "iso": "2026-10-12",
         "times": [
-          "07:15"
+          "10:15"
         ]
       }
     ],
@@ -1897,15 +1883,6 @@
         "iso": "2026-10-13",
         "times": [
           "12:05"
-        ]
-      }
-    ],
-    "Sligo": [
-      {
-        "date": "Friday 23rd Oct",
-        "iso": "2026-10-23",
-        "times": [
-          "12:45"
         ]
       }
     ],
