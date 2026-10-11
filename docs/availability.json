@@ -577,7 +577,6 @@
           "08:15",
           "08:45",
           "09:15",
-          "09:45",
           "13:45",
           "14:15",
           "14:45",
@@ -1902,6 +1901,22 @@
         ]
       }
     ],
+    "Galway": [
+      {
+        "date": "Tuesday 20th Oct",
+        "iso": "2026-10-20",
+        "times": [
+          "19:00"
+        ]
+      },
+      {
+        "date": "Wednesday 21st Oct",
+        "iso": "2026-10-21",
+        "times": [
+          "15:15"
+        ]
+      }
+    ],
     "Kilkenny": [
       {
         "date": "Monday 12th Oct",
@@ -1911,30 +1926,12 @@
         ]
       }
     ],
-    "Macroom": [
+    "Mullingar": [
       {
         "date": "Tuesday 13th Oct",
         "iso": "2026-10-13",
         "times": [
-          "14:05"
-        ]
-      }
-    ],
-    "Navan": [
-      {
-        "date": "Friday 23rd Oct",
-        "iso": "2026-10-23",
-        "times": [
-          "09:30"
-        ]
-      }
-    ],
-    "Tuam": [
-      {
-        "date": "Tuesday 13th Oct",
-        "iso": "2026-10-13",
-        "times": [
-          "14:30"
+          "12:05"
         ]
       }
     ],
