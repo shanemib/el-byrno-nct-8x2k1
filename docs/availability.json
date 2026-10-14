@@ -2485,6 +2485,13 @@
     ],
     "Fonthill": [
       {
+        "date": "Saturday 24th Oct",
+        "iso": "2026-10-24",
+        "times": [
+          "20:25"
+        ]
+      },
+      {
         "date": "Tuesday 3rd Nov",
         "iso": "2026-11-03",
         "times": [
@@ -4786,6 +4793,15 @@
           "18:30",
           "18:50",
           "19:10"
+        ]
+      }
+    ],
+    "Portlaoise": [
+      {
+        "date": "Friday 23rd Oct",
+        "iso": "2026-10-23",
+        "times": [
+          "19:30"
         ]
       }
     ],
