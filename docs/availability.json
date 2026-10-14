@@ -464,7 +464,6 @@
         "date": "Tuesday 3rd Nov",
         "iso": "2026-11-03",
         "times": [
-          "19:35",
           "20:05",
           "20:25",
           "20:55",
@@ -2800,13 +2799,6 @@
       }
     ],
     "Greenhills (Exit 11,M50)": [
-      {
-        "date": "Friday 23rd Oct",
-        "iso": "2026-10-23",
-        "times": [
-          "18:40"
-        ]
-      },
       {
         "date": "Thursday 5th Nov",
         "iso": "2026-11-05",
