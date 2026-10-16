@@ -632,6 +632,13 @@
     ],
     "Charleville": [
       {
+        "date": "Wednesday 21st Oct",
+        "iso": "2026-10-21",
+        "times": [
+          "08:15"
+        ]
+      },
+      {
         "date": "Monday 26th Oct",
         "iso": "2026-10-26",
         "times": [
@@ -1064,12 +1071,12 @@
         ]
       }
     ],
-    "Fonthill": [
+    "Ennis": [
       {
-        "date": "Friday 16th Oct",
-        "iso": "2026-10-16",
+        "date": "Sunday 1st Nov",
+        "iso": "2026-11-01",
         "times": [
-          "14:15"
+          "12:40"
         ]
       }
     ],
