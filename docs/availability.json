@@ -632,13 +632,6 @@
     ],
     "Charleville": [
       {
-        "date": "Wednesday 21st Oct",
-        "iso": "2026-10-21",
-        "times": [
-          "08:15"
-        ]
-      },
-      {
         "date": "Monday 26th Oct",
         "iso": "2026-10-26",
         "times": [
@@ -1068,15 +1061,6 @@
           "00:55",
           "01:05",
           "01:15"
-        ]
-      }
-    ],
-    "Ennis": [
-      {
-        "date": "Sunday 1st Nov",
-        "iso": "2026-11-01",
-        "times": [
-          "12:40"
         ]
       }
     ],
