@@ -590,13 +590,6 @@
     ],
     "Carlow": [
       {
-        "date": "Sunday 18th Oct",
-        "iso": "2026-10-18",
-        "times": [
-          "02:45"
-        ]
-      },
-      {
         "date": "Tuesday 3rd Nov",
         "iso": "2026-11-03",
         "times": [
@@ -1841,7 +1834,6 @@
         "date": "Tuesday 10th Nov",
         "iso": "2026-11-10",
         "times": [
-          "08:55",
           "09:25",
           "09:55",
           "10:55",
@@ -1869,6 +1861,15 @@
           "12:15",
           "14:15",
           "14:45"
+        ]
+      }
+    ],
+    "Drogheda": [
+      {
+        "date": "Tuesday 27th Oct",
+        "iso": "2026-10-27",
+        "times": [
+          "18:15"
         ]
       }
     ],
@@ -1975,15 +1976,6 @@
           "15:25",
           "15:55",
           "16:25"
-        ]
-      }
-    ],
-    "Ennis": [
-      {
-        "date": "Sunday 1st Nov",
-        "iso": "2026-11-01",
-        "times": [
-          "11:00"
         ]
       }
     ],
@@ -2478,13 +2470,6 @@
     ],
     "Kilkenny": [
       {
-        "date": "Sunday 18th Oct",
-        "iso": "2026-10-18",
-        "times": [
-          "15:30"
-        ]
-      },
-      {
         "date": "Friday 6th Nov",
         "iso": "2026-11-06",
         "times": [
@@ -2671,13 +2656,6 @@
     ],
     "Letterkenny": [
       {
-        "date": "Monday 19th Oct",
-        "iso": "2026-10-19",
-        "times": [
-          "13:45"
-        ]
-      },
-      {
         "date": "Monday 9th Nov",
         "iso": "2026-11-09",
         "times": [
@@ -2821,6 +2799,13 @@
       }
     ],
     "Limerick": [
+      {
+        "date": "Friday 30th Oct",
+        "iso": "2026-10-30",
+        "times": [
+          "19:00"
+        ]
+      },
       {
         "date": "Monday 9th Nov",
         "iso": "2026-11-09",
@@ -3612,7 +3597,6 @@
         "date": "Saturday 14th Nov",
         "iso": "2026-11-14",
         "times": [
-          "09:00",
           "09:30",
           "11:00"
         ]
