@@ -1041,16 +1041,15 @@
         ]
       }
     ],
-    "Carrick-on-Shannon": [
+    "Castleisland": [
       {
         "date": "Tuesday 20th Oct",
         "iso": "2026-10-20",
         "times": [
-          "15:45"
+          "12:05",
+          "15:35"
         ]
-      }
-    ],
-    "Castleisland": [
+      },
       {
         "date": "Monday 9th Nov",
         "iso": "2026-11-09",
@@ -1129,7 +1128,6 @@
         "date": "Tuesday 20th Oct",
         "iso": "2026-10-20",
         "times": [
-          "12:05",
           "15:35",
           "21:15"
         ]
