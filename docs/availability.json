@@ -814,6 +814,13 @@
         ]
       },
       {
+        "date": "Tuesday 27th Oct",
+        "iso": "2026-10-27",
+        "times": [
+          "08:25"
+        ]
+      },
+      {
         "date": "Tuesday 3rd Nov",
         "iso": "2026-11-03",
         "times": [
@@ -1730,13 +1737,6 @@
     ],
     "Castlerea": [
       {
-        "date": "Tuesday 20th Oct",
-        "iso": "2026-10-20",
-        "times": [
-          "08:00"
-        ]
-      },
-      {
         "date": "Monday 9th Nov",
         "iso": "2026-11-09",
         "times": [
@@ -1769,7 +1769,6 @@
         "date": "Tuesday 10th Nov",
         "iso": "2026-11-10",
         "times": [
-          "08:00",
           "08:10",
           "08:30",
           "08:45",
@@ -3926,13 +3925,6 @@
       }
     ],
     "Deansgrange": [
-      {
-        "date": "Wednesday 21st Oct",
-        "iso": "2026-10-21",
-        "times": [
-          "09:40"
-        ]
-      },
       {
         "date": "Friday 23rd Oct",
         "iso": "2026-10-23",
@@ -6146,7 +6138,6 @@
         "date": "Monday 9th Nov",
         "iso": "2026-11-09",
         "times": [
-          "07:55",
           "08:15",
           "08:25",
           "08:45",
@@ -6642,8 +6633,7 @@
         "iso": "2026-10-26",
         "times": [
           "08:35",
-          "10:15",
-          "14:35"
+          "10:15"
         ]
       },
       {
@@ -6924,13 +6914,6 @@
       }
     ],
     "Letterkenny": [
-      {
-        "date": "Tuesday 20th Oct",
-        "iso": "2026-10-20",
-        "times": [
-          "07:55"
-        ]
-      },
       {
         "date": "Monday 9th Nov",
         "iso": "2026-11-09",
@@ -9783,13 +9766,6 @@
     ],
     "Waterford": [
       {
-        "date": "Friday 23rd Oct",
-        "iso": "2026-10-23",
-        "times": [
-          "18:00"
-        ]
-      },
-      {
         "date": "Saturday 24th Oct",
         "iso": "2026-10-24",
         "times": [
@@ -10067,7 +10043,6 @@
         "date": "Monday 9th Nov",
         "iso": "2026-11-09",
         "times": [
-          "08:25",
           "08:35",
           "08:55",
           "09:35",
@@ -10286,13 +10261,6 @@
       }
     ],
     "Youghal": [
-      {
-        "date": "Saturday 24th Oct",
-        "iso": "2026-10-24",
-        "times": [
-          "16:35"
-        ]
-      },
       {
         "date": "Sunday 25th Oct",
         "iso": "2026-10-25",
