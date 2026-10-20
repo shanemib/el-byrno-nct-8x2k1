@@ -3949,17 +3949,17 @@
         ]
       },
       {
-        "date": "Tuesday 27th Oct",
-        "iso": "2026-10-27",
-        "times": [
-          "14:50"
-        ]
-      },
-      {
         "date": "Thursday 29th Oct",
         "iso": "2026-10-29",
         "times": [
           "18:25"
+        ]
+      },
+      {
+        "date": "Saturday 7th Nov",
+        "iso": "2026-11-07",
+        "times": [
+          "14:10"
         ]
       },
       {
@@ -4696,7 +4696,6 @@
         "date": "Friday 23rd Oct",
         "iso": "2026-10-23",
         "times": [
-          "12:55",
           "19:00"
         ]
       },
@@ -5110,8 +5109,7 @@
         "date": "Friday 23rd Oct",
         "iso": "2026-10-23",
         "times": [
-          "16:40",
-          "17:30"
+          "16:40"
         ]
       },
       {
@@ -7531,13 +7529,6 @@
       }
     ],
     "Longford": [
-      {
-        "date": "Friday 30th Oct",
-        "iso": "2026-10-30",
-        "times": [
-          "15:55"
-        ]
-      },
       {
         "date": "Monday 9th Nov",
         "iso": "2026-11-09",
@@ -10144,13 +10135,6 @@
       }
     ],
     "Westport": [
-      {
-        "date": "Saturday 24th Oct",
-        "iso": "2026-10-24",
-        "times": [
-          "13:55"
-        ]
-      },
       {
         "date": "Monday 9th Nov",
         "iso": "2026-11-09",
