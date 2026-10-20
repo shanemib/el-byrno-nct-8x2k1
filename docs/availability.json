@@ -158,13 +158,6 @@
     ],
     "Athlone": [
       {
-        "date": "Wednesday 21st Oct",
-        "iso": "2026-10-21",
-        "times": [
-          "19:10"
-        ]
-      },
-      {
         "date": "Monday 9th Nov",
         "iso": "2026-11-09",
         "times": [
@@ -2488,6 +2481,7 @@
         "date": "Sunday 25th Oct",
         "iso": "2026-10-25",
         "times": [
+          "10:00",
           "15:40",
           "15:50",
           "16:40",
@@ -9001,13 +8995,6 @@
       }
     ],
     "Northpoint 1 (Exit 4, M50)": [
-      {
-        "date": "Sunday 25th Oct",
-        "iso": "2026-10-25",
-        "times": [
-          "19:30"
-        ]
-      },
       {
         "date": "Friday 30th Oct",
         "iso": "2026-10-30",
