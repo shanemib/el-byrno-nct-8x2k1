@@ -9782,13 +9782,6 @@
     ],
     "Tullamore": [
       {
-        "date": "Wednesday 28th Oct",
-        "iso": "2026-10-28",
-        "times": [
-          "15:25"
-        ]
-      },
-      {
         "date": "Monday 9th Nov",
         "iso": "2026-11-09",
         "times": [
@@ -10030,7 +10023,6 @@
         "date": "Tuesday 3rd Nov",
         "iso": "2026-11-03",
         "times": [
-          "21:55",
           "22:05",
           "22:15",
           "22:25"
