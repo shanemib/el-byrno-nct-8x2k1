@@ -545,6 +545,13 @@
         ]
       },
       {
+        "date": "Tuesday 3rd Nov",
+        "iso": "2026-11-03",
+        "times": [
+          "11:05"
+        ]
+      },
+      {
         "date": "Wednesday 4th Nov",
         "iso": "2026-11-04",
         "times": [
@@ -1274,13 +1281,6 @@
     ],
     "Cork-Little Island": [
       {
-        "date": "Sunday 1st Nov",
-        "iso": "2026-11-01",
-        "times": [
-          "01:05"
-        ]
-      },
-      {
         "date": "Tuesday 3rd Nov",
         "iso": "2026-11-03",
         "times": [
@@ -1503,17 +1503,9 @@
     ],
     "Deansgrange": [
       {
-        "date": "Saturday 24th Oct",
-        "iso": "2026-10-24",
-        "times": [
-          "09:40"
-        ]
-      },
-      {
         "date": "Friday 13th Nov",
         "iso": "2026-11-13",
         "times": [
-          "16:50",
           "17:25",
           "18:45",
           "18:55",
@@ -1530,8 +1522,7 @@
         "date": "Monday 2nd Nov",
         "iso": "2026-11-02",
         "times": [
-          "14:55",
-          "15:35"
+          "14:55"
         ]
       },
       {
@@ -2276,21 +2267,6 @@
     ],
     "Galway": [
       {
-        "date": "Friday 30th Oct",
-        "iso": "2026-10-30",
-        "times": [
-          "19:00"
-        ]
-      },
-      {
-        "date": "Monday 2nd Nov",
-        "iso": "2026-11-02",
-        "times": [
-          "07:35",
-          "10:05"
-        ]
-      },
-      {
         "date": "Monday 9th Nov",
         "iso": "2026-11-09",
         "times": [
@@ -2351,19 +2327,13 @@
     ],
     "Greenhills (Exit 11,M50)": [
       {
-        "date": "Saturday 24th Oct",
-        "iso": "2026-10-24",
-        "times": [
-          "15:40"
-        ]
-      },
-      {
         "date": "Friday 13th Nov",
         "iso": "2026-11-13",
         "times": [
           "08:15",
           "08:25",
           "08:45",
+          "08:55",
           "14:10",
           "14:20",
           "14:30",
@@ -2384,12 +2354,28 @@
         ]
       }
     ],
+    "Kells": [
+      {
+        "date": "Thursday 29th Oct",
+        "iso": "2026-10-29",
+        "times": [
+          "18:40"
+        ]
+      }
+    ],
     "Kilkenny": [
       {
         "date": "Friday 30th Oct",
         "iso": "2026-10-30",
         "times": [
           "11:00"
+        ]
+      },
+      {
+        "date": "Monday 2nd Nov",
+        "iso": "2026-11-02",
+        "times": [
+          "19:30"
         ]
       },
       {
@@ -2505,13 +2491,6 @@
     ],
     "Limerick": [
       {
-        "date": "Monday 26th Oct",
-        "iso": "2026-10-26",
-        "times": [
-          "09:40"
-        ]
-      },
-      {
         "date": "Wednesday 4th Nov",
         "iso": "2026-11-04",
         "times": [
@@ -2572,7 +2551,6 @@
           "17:15",
           "17:25",
           "17:35",
-          "18:35",
           "18:55",
           "19:25",
           "20:25",
@@ -2910,13 +2888,6 @@
     ],
     "Naas": [
       {
-        "date": "Monday 2nd Nov",
-        "iso": "2026-11-02",
-        "times": [
-          "14:55"
-        ]
-      },
-      {
         "date": "Wednesday 11th Nov",
         "iso": "2026-11-11",
         "times": [
@@ -3226,6 +3197,15 @@
         ]
       }
     ],
+    "Portlaoise": [
+      {
+        "date": "Tuesday 27th Oct",
+        "iso": "2026-10-27",
+        "times": [
+          "09:35"
+        ]
+      }
+    ],
     "Skibbereen": [
       {
         "date": "Wednesday 11th Nov",
@@ -3466,13 +3446,6 @@
       }
     ],
     "Westport": [
-      {
-        "date": "Tuesday 27th Oct",
-        "iso": "2026-10-27",
-        "times": [
-          "21:35"
-        ]
-      },
       {
         "date": "Thursday 5th Nov",
         "iso": "2026-11-05",
