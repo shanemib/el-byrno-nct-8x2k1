@@ -4983,21 +4983,14 @@
     ],
     "Northpoint 1 (Exit 4, M50)": [
       {
-        "date": "Friday 23rd Oct",
-        "iso": "2026-10-23",
+        "date": "Wednesday 11th Nov",
+        "iso": "2026-11-11",
         "times": [
-          "13:25"
+          "14:55"
         ]
       }
     ],
     "Northpoint 2 (Exit 4, M50)": [
-      {
-        "date": "Friday 30th Oct",
-        "iso": "2026-10-30",
-        "times": [
-          "15:00"
-        ]
-      },
       {
         "date": "Friday 13th Nov",
         "iso": "2026-11-13",
