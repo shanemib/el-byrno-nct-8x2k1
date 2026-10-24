@@ -1,6 +1,15 @@
 {
   "window_days": 28,
   "centres": {
+    "Abbeyfeale": [
+      {
+        "date": "Monday 2nd Nov",
+        "iso": "2026-11-02",
+        "times": [
+          "11:45"
+        ]
+      }
+    ],
     "Arklow": [
       {
         "date": "Friday 13th Nov",
@@ -1722,7 +1731,6 @@
         "date": "Saturday 14th Nov",
         "iso": "2026-11-14",
         "times": [
-          "19:40",
           "20:10",
           "20:20",
           "20:30",
@@ -2715,13 +2723,6 @@
     ],
     "Mullingar": [
       {
-        "date": "Saturday 24th Oct",
-        "iso": "2026-10-24",
-        "times": [
-          "09:05"
-        ]
-      },
-      {
         "date": "Wednesday 11th Nov",
         "iso": "2026-11-11",
         "times": [
@@ -3027,7 +3028,6 @@
           "15:35",
           "15:55",
           "16:05",
-          "16:35",
           "20:35",
           "21:25",
           "21:35",
@@ -3413,11 +3413,21 @@
         ]
       }
     ],
+    "Tullamore": [
+      {
+        "date": "Saturday 24th Oct",
+        "iso": "2026-10-24",
+        "times": [
+          "11:15"
+        ]
+      }
+    ],
     "Westport": [
       {
         "date": "Thursday 5th Nov",
         "iso": "2026-11-05",
         "times": [
+          "16:55",
           "18:55"
         ]
       },
