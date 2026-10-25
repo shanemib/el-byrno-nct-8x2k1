@@ -3,6 +3,13 @@
   "centres": {
     "Cahir": [
       {
+        "date": "Monday 26th Oct",
+        "iso": "2026-10-26",
+        "times": [
+          "11:15"
+        ]
+      },
+      {
         "date": "Wednesday 11th Nov",
         "iso": "2026-11-11",
         "times": [
@@ -209,7 +216,6 @@
         "date": "Friday 13th Nov",
         "iso": "2026-11-13",
         "times": [
-          "14:35",
           "15:55"
         ]
       }
@@ -300,7 +306,6 @@
           "13:45",
           "15:25",
           "16:25",
-          "19:30",
           "20:30",
           "21:00",
           "21:30",
@@ -839,6 +844,15 @@
         ]
       }
     ],
+    "Deansgrange": [
+      {
+        "date": "Monday 26th Oct",
+        "iso": "2026-10-26",
+        "times": [
+          "09:40"
+        ]
+      }
+    ],
     "Derrybeg": [
       {
         "date": "Tuesday 27th Oct",
@@ -1040,7 +1054,6 @@
         "date": "Thursday 5th Nov",
         "iso": "2026-11-05",
         "times": [
-          "20:05",
           "20:25",
           "20:35",
           "20:55",
@@ -1267,13 +1280,6 @@
     ],
     "Letterkenny": [
       {
-        "date": "Tuesday 3rd Nov",
-        "iso": "2026-11-03",
-        "times": [
-          "07:55"
-        ]
-      },
-      {
         "date": "Thursday 12th Nov",
         "iso": "2026-11-12",
         "times": [
@@ -1342,7 +1348,6 @@
         "date": "Thursday 12th Nov",
         "iso": "2026-11-12",
         "times": [
-          "08:25",
           "08:35",
           "08:45",
           "08:55",
@@ -1509,13 +1514,6 @@
     ],
     "Naas": [
       {
-        "date": "Monday 26th Oct",
-        "iso": "2026-10-26",
-        "times": [
-          "14:55"
-        ]
-      },
-      {
         "date": "Thursday 12th Nov",
         "iso": "2026-11-12",
         "times": [
@@ -1549,7 +1547,6 @@
         "date": "Wednesday 11th Nov",
         "iso": "2026-11-11",
         "times": [
-          "08:15",
           "08:25",
           "08:35",
           "08:45",
