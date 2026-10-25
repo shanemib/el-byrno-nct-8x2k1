@@ -253,13 +253,6 @@
     ],
     "Carlow": [
       {
-        "date": "Sunday 25th Oct",
-        "iso": "2026-10-25",
-        "times": [
-          "02:15"
-        ]
-      },
-      {
         "date": "Tuesday 27th Oct",
         "iso": "2026-10-27",
         "times": [
@@ -1798,13 +1791,6 @@
     ],
     "Fonthill": [
       {
-        "date": "Thursday 5th Nov",
-        "iso": "2026-11-05",
-        "times": [
-          "19:40"
-        ]
-      },
-      {
         "date": "Saturday 14th Nov",
         "iso": "2026-11-14",
         "times": [
@@ -2078,7 +2064,6 @@
         "date": "Tuesday 27th Oct",
         "iso": "2026-10-27",
         "times": [
-          "10:05",
           "18:45"
         ]
       },
@@ -2487,7 +2472,6 @@
         "date": "Tuesday 27th Oct",
         "iso": "2026-10-27",
         "times": [
-          "07:55",
           "21:25",
           "21:35"
         ]
@@ -2504,13 +2488,6 @@
       }
     ],
     "Portlaoise": [
-      {
-        "date": "Tuesday 27th Oct",
-        "iso": "2026-10-27",
-        "times": [
-          "12:35"
-        ]
-      },
       {
         "date": "Wednesday 4th Nov",
         "iso": "2026-11-04",
