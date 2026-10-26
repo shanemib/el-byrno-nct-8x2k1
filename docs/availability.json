@@ -1,6 +1,15 @@
 {
   "window_days": 28,
   "centres": {
+    "Ballina": [
+      {
+        "date": "Tuesday 27th Oct",
+        "iso": "2026-10-27",
+        "times": [
+          "11:25"
+        ]
+      }
+    ],
     "Cahir": [
       {
         "date": "Friday 13th Nov",
@@ -884,15 +893,6 @@
         "times": [
           "08:25",
           "11:25"
-        ]
-      }
-    ],
-    "Longford": [
-      {
-        "date": "Tuesday 3rd Nov",
-        "iso": "2026-11-03",
-        "times": [
-          "09:15"
         ]
       }
     ],
