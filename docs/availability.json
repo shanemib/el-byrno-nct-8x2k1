@@ -59,7 +59,6 @@
         "date": "Friday 13th Nov",
         "iso": "2026-11-13",
         "times": [
-          "19:20",
           "19:30",
           "19:40"
         ]
@@ -105,7 +104,6 @@
         "iso": "2026-11-08",
         "times": [
           "10:10",
-          "10:20",
           "11:40",
           "13:00",
           "15:20",
@@ -497,7 +495,6 @@
           "02:55",
           "03:05",
           "03:15",
-          "21:20",
           "21:30",
           "21:40",
           "21:50",
@@ -771,6 +768,15 @@
         ]
       }
     ],
+    "Drogheda": [
+      {
+        "date": "Thursday 5th Nov",
+        "iso": "2026-11-05",
+        "times": [
+          "11:15"
+        ]
+      }
+    ],
     "Dundalk": [
       {
         "date": "Saturday 7th Nov",
@@ -915,7 +921,6 @@
         "date": "Friday 13th Nov",
         "iso": "2026-11-13",
         "times": [
-          "15:40",
           "21:30"
         ]
       }
@@ -1035,15 +1040,6 @@
         ]
       }
     ],
-    "Navan": [
-      {
-        "date": "Thursday 5th Nov",
-        "iso": "2026-11-05",
-        "times": [
-          "19:00"
-        ]
-      }
-    ],
     "Nenagh": [
       {
         "date": "Wednesday 11th Nov",
@@ -1126,16 +1122,14 @@
         ]
       }
     ],
-    "Portlaoise": [
+    "Skibbereen": [
       {
         "date": "Monday 2nd Nov",
         "iso": "2026-11-02",
         "times": [
-          "08:55"
+          "16:25"
         ]
-      }
-    ],
-    "Skibbereen": [
+      },
       {
         "date": "Thursday 12th Nov",
         "iso": "2026-11-12",
@@ -1163,7 +1157,30 @@
         ]
       }
     ],
+    "Waterford": [
+      {
+        "date": "Monday 2nd Nov",
+        "iso": "2026-11-02",
+        "times": [
+          "13:45"
+        ]
+      },
+      {
+        "date": "Tuesday 3rd Nov",
+        "iso": "2026-11-03",
+        "times": [
+          "21:15"
+        ]
+      }
+    ],
     "Youghal": [
+      {
+        "date": "Thursday 5th Nov",
+        "iso": "2026-11-05",
+        "times": [
+          "12:25"
+        ]
+      },
       {
         "date": "Sunday 8th Nov",
         "iso": "2026-11-08",
@@ -1261,6 +1278,7 @@
         "date": "Saturday 14th Nov",
         "iso": "2026-11-14",
         "times": [
+          "18:45",
           "18:55",
           "19:15",
           "19:25",
