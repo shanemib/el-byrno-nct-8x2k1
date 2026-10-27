@@ -250,7 +250,6 @@
         "date": "Friday 6th Nov",
         "iso": "2026-11-06",
         "times": [
-          "15:50",
           "20:10",
           "20:40",
           "20:50",
@@ -674,13 +673,6 @@
     ],
     "Derrybeg": [
       {
-        "date": "Wednesday 28th Oct",
-        "iso": "2026-10-28",
-        "times": [
-          "21:15"
-        ]
-      },
-      {
         "date": "Thursday 29th Oct",
         "iso": "2026-10-29",
         "times": [
@@ -861,7 +853,6 @@
         "date": "Thursday 29th Oct",
         "iso": "2026-10-29",
         "times": [
-          "14:55",
           "17:55",
           "19:55"
         ]
@@ -989,7 +980,6 @@
         "date": "Thursday 29th Oct",
         "iso": "2026-10-29",
         "times": [
-          "16:25",
           "20:10"
         ]
       }
