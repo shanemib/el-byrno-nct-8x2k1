@@ -1052,26 +1052,6 @@
         ]
       }
     ],
-    "Galway": [
-      {
-        "date": "Tuesday 10th Nov",
-        "iso": "2026-11-10",
-        "times": [
-          "14:15"
-        ]
-      }
-    ],
-    "Greenhills (Exit 11,M50)": [
-      {
-        "date": "Thursday 29th Oct",
-        "iso": "2026-10-29",
-        "times": [
-          "18:05",
-          "18:35",
-          "18:55"
-        ]
-      }
-    ],
     "Kells": [
       {
         "date": "Tuesday 27th Oct",
@@ -1282,25 +1262,6 @@
         ]
       }
     ],
-    "Navan": [
-      {
-        "date": "Thursday 29th Oct",
-        "iso": "2026-10-29",
-        "times": [
-          "09:25",
-          "12:45",
-          "16:05",
-          "19:20"
-        ]
-      },
-      {
-        "date": "Thursday 5th Nov",
-        "iso": "2026-11-05",
-        "times": [
-          "11:05"
-        ]
-      }
-    ],
     "Nenagh": [
       {
         "date": "Tuesday 27th Oct",
@@ -1425,25 +1386,6 @@
         "times": [
           "10:20",
           "15:00"
-        ]
-      },
-      {
-        "date": "Friday 6th Nov",
-        "iso": "2026-11-06",
-        "times": [
-          "11:10"
-        ]
-      }
-    ],
-    "Tullamore": [
-      {
-        "date": "Thursday 29th Oct",
-        "iso": "2026-10-29",
-        "times": [
-          "09:55",
-          "11:55",
-          "20:25",
-          "21:35"
         ]
       }
     ],
