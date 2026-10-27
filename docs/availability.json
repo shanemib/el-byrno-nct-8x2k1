@@ -1262,6 +1262,32 @@
         ]
       }
     ],
+    "Navan": [
+      {
+        "date": "Wednesday 28th Oct",
+        "iso": "2026-10-28",
+        "times": [
+          "07:25"
+        ]
+      },
+      {
+        "date": "Thursday 29th Oct",
+        "iso": "2026-10-29",
+        "times": [
+          "09:25",
+          "12:45",
+          "16:05",
+          "19:20"
+        ]
+      },
+      {
+        "date": "Thursday 5th Nov",
+        "iso": "2026-11-05",
+        "times": [
+          "11:05"
+        ]
+      }
+    ],
     "Nenagh": [
       {
         "date": "Tuesday 27th Oct",
