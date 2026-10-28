@@ -748,7 +748,6 @@
         "date": "Tuesday 17th Nov",
         "iso": "2026-11-17",
         "times": [
-          "08:05",
           "08:35",
           "09:35",
           "10:35",
@@ -1022,16 +1021,14 @@
         ]
       }
     ],
-    "Cahir": [
+    "Cahirciveen": [
       {
         "date": "Friday 30th Oct",
         "iso": "2026-10-30",
         "times": [
-          "19:30"
+          "13:50"
         ]
-      }
-    ],
-    "Cahirciveen": [
+      },
       {
         "date": "Monday 16th Nov",
         "iso": "2026-11-16",
@@ -1055,13 +1052,6 @@
       }
     ],
     "Carlow": [
-      {
-        "date": "Wednesday 4th Nov",
-        "iso": "2026-11-04",
-        "times": [
-          "11:45"
-        ]
-      },
       {
         "date": "Friday 6th Nov",
         "iso": "2026-11-06",
@@ -6414,7 +6404,6 @@
         "date": "Wednesday 28th Oct",
         "iso": "2026-10-28",
         "times": [
-          "07:25",
           "08:35",
           "09:05"
         ]
@@ -8759,12 +8748,18 @@
           "09:45",
           "11:35",
           "15:15",
-          "19:00",
-          "20:00"
+          "19:00"
         ]
       }
     ],
     "Northpoint 2 (Exit 4, M50)": [
+      {
+        "date": "Wednesday 28th Oct",
+        "iso": "2026-10-28",
+        "times": [
+          "09:25"
+        ]
+      },
       {
         "date": "Monday 9th Nov",
         "iso": "2026-11-09",
