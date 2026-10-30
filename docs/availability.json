@@ -3879,13 +3879,6 @@
         ]
       },
       {
-        "date": "Thursday 5th Nov",
-        "iso": "2026-11-05",
-        "times": [
-          "09:55"
-        ]
-      },
-      {
         "date": "Wednesday 11th Nov",
         "iso": "2026-11-11",
         "times": [
@@ -5031,7 +5024,26 @@
         ]
       }
     ],
+    "Northpoint 1 (Exit 4, M50)": [
+      {
+        "date": "Tuesday 3rd Nov",
+        "iso": "2026-11-03",
+        "times": [
+          "08:25"
+        ]
+      }
+    ],
     "Northpoint 2 (Exit 4, M50)": [
+      {
+        "date": "Friday 20th Nov",
+        "iso": "2026-11-20",
+        "times": [
+          "19:00",
+          "22:00",
+          "22:10",
+          "22:20"
+        ]
+      },
       {
         "date": "Saturday 21st Nov",
         "iso": "2026-11-21",
